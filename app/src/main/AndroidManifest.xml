@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NotesList">
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.MainActivity"
             android:exported="true">
 
             <intent-filter>

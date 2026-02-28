@@ -1,10 +1,11 @@
-package com.example.noteslist
+package com.example.noteslist.presentation
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.noteslist.R
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
