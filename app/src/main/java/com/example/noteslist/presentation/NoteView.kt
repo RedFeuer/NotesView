@@ -6,6 +6,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import com.example.noteslist.R
@@ -38,11 +41,70 @@ class NoteView @JvmOverloads constructor(
             field = value
             invalidate()
         }
+    /* layout для разметки текста, обработки переносов и fade */
+    private var descriptionLayout: StaticLayout? = null
+    /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
+    private var descriptionOverflow: Boolean = false
+    /* ширина текста описания в пикселях */
+    private var descriptionTextWidthPx: Int = 0
+    /* высота 2 строку в пикселях */
+    private var descriptionTextMaxHeightPx: Int = 0
+    /* дата и время создание заметки */
     var createdAtText: String? = null
         set(value) {
             field = value
+            updateDescriptionLayout() // при изменении текста пересчитываем layout
             invalidate()
         }
+
+    private fun updateDescriptionLayout() {
+        /* если описание пустое, не строим layout и сбрасываем флаг overflow */
+        val text = description?.takeIf { it.isNotBlank() } ?: run {
+            descriptionLayout = null
+            descriptionOverflow = false
+            return
+        }
+
+        val w = descriptionTextWidthPx
+        if (w <= 0) return // если ширина не задана, не строим layout
+
+        /* выставляем флаг, что строк больше 2 */
+        val full = buildStaticLayout(
+            text = text,
+            maxLines = Int.MAX_VALUE,
+            paint = descriptionTextPaint,
+            widthPx = w,
+        )
+        descriptionOverflow = full.lineCount > 2
+
+        /* текстовая разметка, ограниченная 2 строками*/
+        descriptionLayout = buildStaticLayout(
+            text = text,
+            maxLines = 2,
+            paint = descriptionTextPaint,
+            widthPx = w,
+        ).also { layout ->
+            descriptionTextMaxHeightPx = when {
+                layout.lineCount >= 2 -> layout.getLineBottom(1)
+                layout.lineCount == 1 -> layout.getLineBottom(0)
+                else -> 0
+            }
+        }
+    }
+
+    private fun buildStaticLayout(
+        text: String,
+        maxLines: Int,
+        paint: TextPaint,
+        widthPx: Int,
+    ) : StaticLayout {
+        return StaticLayout.Builder.obtain(text, 0, text.length, paint, widthPx)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setIncludePad(false)
+            .setLineSpacing(0f,1.0f)
+            .setMaxLines(maxLines)
+            .build()
+    }
 
     /* заметка */
     private val cardRect = RectF()
@@ -60,18 +122,18 @@ class NoteView @JvmOverloads constructor(
         color = Color.BLUE
     }
 
-    private val titleTextPaint = Paint().apply {
+    private val titleTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
         typeface = Typeface.DEFAULT_BOLD
     }
 
-    private val descriptionTextPaint = Paint().apply {
+    private val descriptionTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
     }
 
-    private val createdAtTextPaint = Paint().apply {
+    private val createdAtTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
     }
@@ -134,6 +196,13 @@ class NoteView @JvmOverloads constructor(
 
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
+
+        /* считаем ширину description (отнимаем два отступа - слева и справа) */
+        val innerPaddingX = 36f
+        descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
+
+        /* обновляем description */
+        updateDescriptionLayout()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -170,6 +239,7 @@ class NoteView @JvmOverloads constructor(
         canvas.drawText(text, startX, baseline, titleTextPaint)
     }
 
+    /* TODO: тут надо исправить под StaticLayout + сделать фейд */
     private fun drawDescription(canvas: Canvas) {
         val text = description?.takeIf { it.isNotBlank() } ?: return
 
