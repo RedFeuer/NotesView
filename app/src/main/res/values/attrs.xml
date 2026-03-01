@@ -5,6 +5,6 @@
         <attr name="isImportant" format="boolean"/>
         <attr name="isViewed" format="boolean"/>
         <attr name="description" format="string"/>
-        <attr name="createdAtMillis" format="integer"/>
+        <attr name="createdAtText" format="string"/>
     </declare-styleable>
 </resources>
