@@ -1,6 +1,8 @@
 package com.example.noteslist.presentation
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import com.example.noteslist.R
@@ -38,7 +40,11 @@ class NoteView @JvmOverloads constructor(
             invalidate()
         }
     init {
+        /* инициализация атрибутов */
         initAttrs(attrs, defStyleAttr, defStyleRes)
+
+        /* инициализация Paint'ов */
+        initPaints()
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
@@ -62,5 +68,43 @@ class NoteView @JvmOverloads constructor(
                 typedArray.recycle()
             }
         }
+    }
+
+    private fun initPaints() {
+        titleTextPaint.apply {
+            textSize = 18.toFloat()
+        }
+        descriptionTextPaint.apply {
+            textSize = 14.toFloat()
+        }
+        createdAtTextPaint.apply {
+            textSize = 12.toFloat()
+        }
+    }
+
+    /* Paint'ы */
+    private val cardPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.WHITE
+    }
+
+    private val headerPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.BLUE
+    }
+
+    private val titleTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
+    }
+
+    private val descriptionTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
+    }
+
+    private val createdAtTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
     }
 }
