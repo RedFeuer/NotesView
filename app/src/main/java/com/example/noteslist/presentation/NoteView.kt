@@ -79,7 +79,7 @@ class NoteView @JvmOverloads constructor(
         /* скругление карточки */
         const val cornerRadiusPx = 16f
         /* высота заголовка */
-        const val headerHeightPx = 56f
+        const val headerHeightPx = 144f
     }
 
     /* размеры по умолчанию, если не указано в разметке (dimens.xml) */
