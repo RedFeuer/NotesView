@@ -12,6 +12,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+
+        app:cardColor="@color/note_card_color"
+        app:headerColor="@color/note_header_color"
+
+        app:titleTextColor="@color/note_title_text_color"
+        app:contentTextColor="@color/note_content_text_color"
+        app:createdAtTextColor="@color/note_created_at_text_color"
+
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

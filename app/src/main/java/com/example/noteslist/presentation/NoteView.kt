@@ -51,7 +51,7 @@ class NoteView @JvmOverloads constructor(
     /* Paint'ы */
     private val cardPaint = Paint().apply {
         style = Paint.Style.FILL
-        color = Color.WHITE
+        color = Color.RED
     }
 
     private val headerPaint = Paint().apply {
@@ -165,6 +165,9 @@ class NoteView @JvmOverloads constructor(
                 isViewed = typedArray.getBoolean(R.styleable.NoteView_isViewed, isViewed)
                 description = typedArray.getString(R.styleable.NoteView_description)
                 createdAtText = typedArray.getString(R.styleable.NoteView_createdAtText)
+
+                cardPaint.color = typedArray.getColor(R.styleable.NoteView_cardColor, cardPaint.color)
+                headerPaint.color = typedArray.getColor(R.styleable.NoteView_headerColor, headerPaint.color)
             }
             finally {
                 /* избегаем утечек памяти */

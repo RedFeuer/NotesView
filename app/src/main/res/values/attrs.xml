@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="NoteView">
+        <!-- Кастомные атрибуты для NoteView -->
         <attr name="title" format="string"/>
         <attr name="isImportant" format="boolean"/>
         <attr name="isViewed" format="boolean"/>
         <attr name="description" format="string"/>
         <attr name="createdAtText" format="string"/>
+
+        <!-- Цвета -->
+        <attr name="cardColor" format="reference|color"/>
+        <attr name="headerColor" format="reference|color"/>
+        <attr name="titleTextColor" format="reference|color"/>
+        <attr name="contentTextColor" format="reference|color"/>
+        <attr name="createdAtTextColor" format="reference|color"/>
     </declare-styleable>
 </resources>
