@@ -1,6 +1,7 @@
 package com.example.noteslist.presentation
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
@@ -78,7 +79,7 @@ class NoteView @JvmOverloads constructor(
         /* скругление карточки */
         const val cornerRadiusPx = 16f
         /* высота заголовка */
-        const val headerHeightPx = 28f
+        const val headerHeightPx = 56f
     }
 
     init {
@@ -106,6 +107,22 @@ class NoteView @JvmOverloads constructor(
 
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        /* при каждой перерисовке рисуем карточку заметки и заголовок */
+        drawCard(canvas)
+        drawHeader(canvas)
+    }
+
+    private fun drawCard(canvas: Canvas) {
+        canvas.drawRoundRect(cardRect, cornerRadiusPx, cornerRadiusPx, cardPaint)
+    }
+
+    private fun drawHeader(canvas: Canvas) {
+        canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, headerPaint)
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
