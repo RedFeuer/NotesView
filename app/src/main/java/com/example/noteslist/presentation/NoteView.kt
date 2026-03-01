@@ -3,9 +3,11 @@ package com.example.noteslist.presentation
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.example.noteslist.R
+import kotlin.math.min
 
 class NoteView @JvmOverloads constructor(
     context: Context,
@@ -39,12 +41,45 @@ class NoteView @JvmOverloads constructor(
             field = value
             invalidate()
         }
+
+    /* заметка */
+    private val cardRect = RectF()
+    /* заголовок */
+    private val headerRect = RectF()
+
+    /* константы */
+    companion object {
+        /* скругление карточки */
+        const val cornerRadiusPx = 16f
+        /* высота заголовка */
+        const val headerHeightPx = 28f
+    }
+
     init {
         /* инициализация атрибутов */
         initAttrs(attrs, defStyleAttr, defStyleRes)
 
         /* инициализация Paint'ов */
         initPaints()
+    }
+
+    /* callback вызывается при изменении размера после onMeasure() и onLayout() перед onDraw() */
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        updateSize(w, h) // пересчитываем размеры только при их изменении
+    }
+
+    /* пересчет размеров заметки (карточка + название) */
+    private fun updateSize(w: Int = width, h: Int = height) {
+        val left = paddingLeft.toFloat()
+        val top = paddingTop.toFloat()
+        val right = width.toFloat() - paddingRight.toFloat()
+        val bottom = height.toFloat() - paddingBottom.toFloat()
+
+        cardRect.set(left, top, right, bottom)
+
+        val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
+        headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
