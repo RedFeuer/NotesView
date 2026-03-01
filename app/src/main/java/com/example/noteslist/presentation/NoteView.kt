@@ -47,6 +47,32 @@ class NoteView @JvmOverloads constructor(
     /* заголовок */
     private val headerRect = RectF()
 
+    /* Paint'ы */
+    private val cardPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.WHITE
+    }
+
+    private val headerPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.BLUE
+    }
+
+    private val titleTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
+    }
+
+    private val descriptionTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
+    }
+
+    private val createdAtTextPaint = Paint().apply {
+        isAntiAlias = true
+        isSubpixelText = true
+    }
+
     /* константы */
     companion object {
         /* скругление карточки */
@@ -115,31 +141,5 @@ class NoteView @JvmOverloads constructor(
         createdAtTextPaint.apply {
             textSize = 12.toFloat()
         }
-    }
-
-    /* Paint'ы */
-    private val cardPaint = Paint().apply {
-        style = Paint.Style.FILL
-        color = Color.WHITE
-    }
-
-    private val headerPaint = Paint().apply {
-        style = Paint.Style.FILL
-        color = Color.BLUE
-    }
-
-    private val titleTextPaint = Paint().apply {
-        isAntiAlias = true
-        isSubpixelText = true
-    }
-
-    private val descriptionTextPaint = Paint().apply {
-        isAntiAlias = true
-        isSubpixelText = true
-    }
-
-    private val createdAtTextPaint = Paint().apply {
-        isAntiAlias = true
-        isSubpixelText = true
     }
 }
