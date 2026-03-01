@@ -82,12 +82,37 @@ class NoteView @JvmOverloads constructor(
         const val headerHeightPx = 56f
     }
 
+    /* размеры по умолчанию, если не указано в разметке (dimens.xml) */
+    private var defaultWidthPx = 200f
+    private var defaultHeightPx = 80f
+
     init {
+        context.resources.apply {
+            /* получаем размеры карточки из dimens.xml */
+            defaultWidthPx = getDimension(R.dimen.note_view_width)
+            defaultHeightPx = getDimension(R.dimen.note_view_height)
+        }
+
         /* инициализация атрибутов */
         initAttrs(attrs, defStyleAttr, defStyleRes)
 
         /* инициализация Paint'ов */
         initPaints()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        /* предпочитаемые ширина и высота */
+        val desiredWidth = defaultWidthPx.toInt() + paddingLeft + paddingRight
+        val desiredHeight = defaultHeightPx.toInt() + paddingTop + paddingBottom
+
+        /* measureSpec:
+        * EXACTLY - берем ровно measureSpec
+        * AT_MOST - если desired влазит - берем его. Иначе - AT_MOST
+        * UNSPECIFIED - берем desired */
+        val measuredWidth = resolveSize(desiredWidth, widthMeasureSpec)
+        val measuredHeight = resolveSize(desiredHeight, heightMeasureSpec)
+
+        setMeasuredDimension(measuredWidth, measuredHeight)
     }
 
     /* callback вызывается при изменении размера после onMeasure() и onLayout() перед onDraw() */
