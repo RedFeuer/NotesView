@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import com.example.noteslist.R
@@ -62,6 +63,7 @@ class NoteView @JvmOverloads constructor(
     private val titleTextPaint = Paint().apply {
         isAntiAlias = true
         isSubpixelText = true
+        typeface = Typeface.DEFAULT_BOLD
     }
 
     private val descriptionTextPaint = Paint().apply {
@@ -140,6 +142,11 @@ class NoteView @JvmOverloads constructor(
         /* при каждой перерисовке рисуем карточку заметки и заголовок */
         drawCard(canvas)
         drawHeader(canvas)
+
+        /* текст */
+        drawTitle(canvas)
+        drawDescription(canvas)
+        drawCreatedAt(canvas)
     }
 
     private fun drawCard(canvas: Canvas) {
@@ -148,6 +155,45 @@ class NoteView @JvmOverloads constructor(
 
     private fun drawHeader(canvas: Canvas) {
         canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, headerPaint)
+    }
+
+    private fun drawTitle(canvas: Canvas) {
+        val text = title?.takeIf { it.isNotBlank() } ?: return
+
+        /* отступы внутри header */
+        val startX = headerRect.left + 36f
+        val startY = headerRect.top +36f
+
+        val fontMetrics = titleTextPaint.fontMetrics
+        val baseline = startY - fontMetrics.ascent // базовая линия для текста
+
+        canvas.drawText(text, startX, baseline, titleTextPaint)
+    }
+
+    private fun drawDescription(canvas: Canvas) {
+        val text = description?.takeIf { it.isNotBlank() } ?: return
+
+        /* отступы внутри карточки */
+        val startX = cardRect.left + 36f
+        val startY = headerRect.bottom + 36f
+
+        val fontMetrics = descriptionTextPaint.fontMetrics
+        val baseline = startY - fontMetrics.ascent // базовая линия для текста
+
+        canvas.drawText(text, startX, baseline, descriptionTextPaint)
+    }
+
+    private fun drawCreatedAt(canvas: Canvas) {
+        val text = createdAtText?.takeIf { it.isNotBlank() } ?: return
+
+        /* отступы внутри карточки */
+        val startX = cardRect.left + 36f
+        val startY = cardRect.bottom - 36f
+
+        val fontMetrics = createdAtTextPaint.fontMetrics
+        val baseline = startY - fontMetrics.descent // базовая линия для текста
+
+        canvas.drawText(text, startX, baseline, createdAtTextPaint)
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
@@ -178,13 +224,13 @@ class NoteView @JvmOverloads constructor(
 
     private fun initPaints() {
         titleTextPaint.apply {
-            textSize = 18.toFloat()
+            textSize = resources.getDimension(R.dimen.note_view_title_text_size)
         }
         descriptionTextPaint.apply {
-            textSize = 14.toFloat()
+            textSize = resources.getDimension(R.dimen.note_view_description_text_size)
         }
         createdAtTextPaint.apply {
-            textSize = 12.toFloat()
+            textSize = resources.getDimension(R.dimen.note_view_created_at_text_size)
         }
     }
 }

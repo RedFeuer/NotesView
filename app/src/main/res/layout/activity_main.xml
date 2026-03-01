@@ -16,6 +16,10 @@
         app:cardColor="@color/note_card_color"
         app:headerColor="@color/note_header_color"
 
+        app:title="Моя заметка"
+        app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."
+        app:createdAtText="01.03.2026 20:26"
+
         app:titleTextColor="@color/note_title_text_color"
         app:contentTextColor="@color/note_content_text_color"
         app:createdAtTextColor="@color/note_created_at_text_color"
