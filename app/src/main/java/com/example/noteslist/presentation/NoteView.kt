@@ -77,7 +77,7 @@ class NoteView @JvmOverloads constructor(
     /* константы */
     companion object {
         /* скругление карточки */
-        const val cornerRadiusPx = 16f
+        const val cornerRadiusPx = 32f
         /* высота заголовка */
         const val headerHeightPx = 144f
     }
