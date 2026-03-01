@@ -93,15 +93,15 @@ class NoteView @JvmOverloads constructor(
     /* callback вызывается при изменении размера после onMeasure() и onLayout() перед onDraw() */
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        updateSize() // пересчитываем размеры только при их изменении
+        updateSize(w, h) // пересчитываем размеры только при их изменении
     }
 
     /* пересчет размеров заметки (карточка + название) */
-    private fun updateSize() {
+    private fun updateSize(w: Int = width, h: Int = height) {
         val left = paddingLeft.toFloat()
         val top = paddingTop.toFloat()
-        val right = width.toFloat() - paddingRight.toFloat()
-        val bottom = height.toFloat() - paddingBottom.toFloat()
+        val right = w.toFloat() - paddingRight.toFloat()
+        val bottom = h.toFloat() - paddingBottom.toFloat()
 
         cardRect.set(left, top, right, bottom)
 
