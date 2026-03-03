@@ -39,6 +39,7 @@ class NoteView @JvmOverloads constructor(
     var description: String? = null
         set(value) {
             field = value
+            updateDescriptionLayout() // при изменении текста пересчитываем layout
             invalidate()
         }
     /* layout для разметки текста, обработки переносов и fade */
@@ -53,44 +54,8 @@ class NoteView @JvmOverloads constructor(
     var createdAtText: String? = null
         set(value) {
             field = value
-            updateDescriptionLayout() // при изменении текста пересчитываем layout
             invalidate()
         }
-
-    private fun updateDescriptionLayout() {
-        /* если описание пустое, не строим layout и сбрасываем флаг overflow */
-        val text = description?.takeIf { it.isNotBlank() } ?: run {
-            descriptionLayout = null
-            descriptionOverflow = false
-            return
-        }
-
-        val w = descriptionTextWidthPx
-        if (w <= 0) return // если ширина не задана, не строим layout
-
-        /* выставляем флаг, что строк больше 2 */
-        val full = buildStaticLayout(
-            text = text,
-            maxLines = Int.MAX_VALUE,
-            paint = descriptionTextPaint,
-            widthPx = w,
-        )
-        descriptionOverflow = full.lineCount > 2
-
-        /* текстовая разметка, ограниченная 2 строками*/
-        descriptionLayout = buildStaticLayout(
-            text = text,
-            maxLines = 2,
-            paint = descriptionTextPaint,
-            widthPx = w,
-        ).also { layout ->
-            descriptionTextMaxHeightPx = when {
-                layout.lineCount >= 2 -> layout.getLineBottom(1)
-                layout.lineCount == 1 -> layout.getLineBottom(0)
-                else -> 0
-            }
-        }
-    }
 
     private fun buildStaticLayout(
         text: String,
@@ -138,12 +103,18 @@ class NoteView @JvmOverloads constructor(
         isSubpixelText = true
     }
 
+    private val fadePaint = Paint().apply {
+        isAntiAlias = true
+    }
+
     /* константы */
     companion object {
         /* скругление карточки */
         const val cornerRadiusPx = 32f
         /* высота заголовка */
         const val headerHeightPx = 144f
+        /* ширина fade для description */
+        const val fadeWidthPx = 36f
     }
 
     /* размеры по умолчанию, если не указано в разметке (dimens.xml) */
@@ -183,6 +154,43 @@ class NoteView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         updateSize(w, h) // пересчитываем размеры только при их изменении
+        /* обновляем description текст */
+        updateDescriptionLayout()
+    }
+
+    private fun updateDescriptionLayout() {
+        /* если описание пустое, не строим layout и сбрасываем флаг overflow */
+        val text = description?.takeIf { it.isNotBlank() } ?: run {
+            descriptionLayout = null
+            descriptionOverflow = false
+            return
+        }
+
+        val w = descriptionTextWidthPx
+        if (w <= 0) return // если ширина не задана, не строим layout
+
+        /* выставляем флаг, что строк больше 2 */
+        val full = buildStaticLayout(
+            text = text,
+            maxLines = Int.MAX_VALUE,
+            paint = descriptionTextPaint,
+            widthPx = w,
+        )
+        descriptionOverflow = full.lineCount > 2
+
+        /* текстовая разметка, ограниченная 2 строками*/
+        descriptionLayout = buildStaticLayout(
+            text = text,
+            maxLines = 2,
+            paint = descriptionTextPaint,
+            widthPx = w,
+        ).also { layout ->
+            descriptionTextMaxHeightPx = when {
+                layout.lineCount >= 2 -> layout.getLineBottom(1)
+                layout.lineCount == 1 -> layout.getLineBottom(0)
+                else -> 0
+            }
+        }
     }
 
     /* пересчет размеров заметки (карточка + название) */
@@ -200,9 +208,6 @@ class NoteView @JvmOverloads constructor(
         /* считаем ширину description (отнимаем два отступа - слева и справа) */
         val innerPaddingX = 36f
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
-
-        /* обновляем description */
-        updateDescriptionLayout()
     }
 
     override fun onDraw(canvas: Canvas) {
