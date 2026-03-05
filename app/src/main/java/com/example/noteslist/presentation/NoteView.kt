@@ -228,13 +228,16 @@ class NoteView @JvmOverloads constructor(
         drawCreatedAt(canvas)
     }
 
+    /* заливаем фон карточки в зависимости от того, прочитана ли заметка */
     private fun drawCard(canvas: Canvas) {
         val paint = if (isViewed) viewedCardPaint else cardPaint
         canvas.drawRoundRect(cardRect, cornerRadiusPx, cornerRadiusPx, paint)
     }
 
+    /* заливаем фон заголовка в зависимости от того, прочитана ли заметка */
     private fun drawHeader(canvas: Canvas) {
-        canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, headerPaint)
+        val paint = if (isViewed) viewedCardPaint else headerPaint
+        canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, paint)
     }
 
     private fun drawTitle(canvas: Canvas) {
@@ -242,7 +245,7 @@ class NoteView @JvmOverloads constructor(
 
         /* отступы внутри header */
         val startX = headerRect.left + 36f
-        val startY = headerRect.top +36f
+        val startY = headerRect.top + 36f
 
         val fontMetrics = titleTextPaint.fontMetrics
         val baseline = startY - fontMetrics.ascent // базовая линия для текста
