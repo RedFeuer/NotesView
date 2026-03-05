@@ -3,8 +3,10 @@ package com.example.noteslist.presentation
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
@@ -114,7 +116,7 @@ class NoteView @JvmOverloads constructor(
         /* высота заголовка */
         const val headerHeightPx = 144f
         /* ширина fade для description */
-        const val fadeWidthPx = 36f
+        const val fadeWidthPx = 108f
     }
 
     /* размеры по умолчанию, если не указано в разметке (dimens.xml) */
@@ -244,18 +246,59 @@ class NoteView @JvmOverloads constructor(
         canvas.drawText(text, startX, baseline, titleTextPaint)
     }
 
-    /* TODO: тут надо исправить под StaticLayout + сделать фейд */
+    /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
     private fun drawDescription(canvas: Canvas) {
-        val text = description?.takeIf { it.isNotBlank() } ?: return
+        val layout = descriptionLayout ?: return
+        if (descriptionTextMaxHeightPx <= 0 || descriptionTextWidthPx <= 0) return
 
-        /* отступы внутри карточки */
         val startX = cardRect.left + 36f
         val startY = headerRect.bottom + 36f
 
-        val fontMetrics = descriptionTextPaint.fontMetrics
-        val baseline = startY - fontMetrics.ascent // базовая линия для текста
+        canvas.save()
+        canvas.translate(startX, startY)
 
-        canvas.drawText(text, startX, baseline, descriptionTextPaint)
+        /* рисуем только первые 2 строки */
+        canvas.clipRect(
+            0f,
+            0f,
+            descriptionTextWidthPx.toFloat(),
+            descriptionTextMaxHeightPx.toFloat()
+        )
+        layout.draw(canvas)
+
+        /* если текста больше 2 строчек, то фейдим конец 2-й строки */
+        if (descriptionOverflow && layout.lineCount >= 2) {
+            val line = 1 // 2-я строка
+            val top = layout.getLineTop(line).toFloat()
+            val bottom = layout.getLineBottom(line).toFloat()
+
+            /* конец текста на 2-й строке */
+            val lineRight = layout.getLineRight(line).coerceAtMost(descriptionTextWidthPx.toFloat())
+
+            if (lineRight > 0) { // если строка пустая - нечего фейдить
+                /* границы фейда:
+                * справа - конец текса, слева - отступ для фейда */
+                val fadeRight = lineRight
+                val fadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
+
+                /* фон под фейд - цвет карточки */
+                val bgColor = cardPaint.color
+                val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
+
+                fadePaint.shader = LinearGradient(
+                    fadeLeft, 0f,
+                    fadeRight, 0f,
+                    transparentBgColor,
+                    bgColor,
+                    Shader.TileMode.CLAMP
+                )
+
+                canvas.drawRect(fadeLeft, top, fadeRight, bottom, fadePaint)
+                fadePaint.shader = null
+            }
+        }
+
+        canvas.restore()
     }
 
     private fun drawCreatedAt(canvas: Canvas) {
