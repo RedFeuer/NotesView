@@ -10,6 +10,9 @@
     <color name="viewed_header_color">#EEEEEE</color>
 
     <color name="note_title_text_color">#111111</color>
+    <color name="viewed_note_title_text_color">#40111111</color>
     <color name="note_content_text_color">#333333</color>
+    <color name="viewed_note_content_text_color">#40333333</color>
     <color name="note_created_at_text_color">#666666</color>
+    <color name="viewed_note_created_at_text_color">#40666666</color>
 </resources>

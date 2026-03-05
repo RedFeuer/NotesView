@@ -14,7 +14,10 @@
         <attr name="headerColor" format="reference|color"/>
         <attr name="viewedHeaderColor" format="reference|color"/>
         <attr name="titleTextColor" format="reference|color"/>
-        <attr name="contentTextColor" format="reference|color"/>
+        <attr name="viewedTitleTextColor" format="color|reference"/>
+        <attr name="descriptionTextColor" format="reference|color"/>
+        <attr name="viewedDescriptionTextColor" format="reference|color"/>
         <attr name="createdAtTextColor" format="reference|color"/>
+        <attr name="viewedCreatedAtTextColor" format="reference|color"/>
     </declare-styleable>
 </resources>
