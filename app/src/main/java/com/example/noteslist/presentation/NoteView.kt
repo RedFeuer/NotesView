@@ -92,6 +92,8 @@ class NoteView @JvmOverloads constructor(
         color = Color.BLUE
     }
 
+    private val viewedHearerPaint = Paint(headerPaint)
+
     private val titleTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
@@ -236,7 +238,7 @@ class NoteView @JvmOverloads constructor(
 
     /* заливаем фон заголовка в зависимости от того, прочитана ли заметка */
     private fun drawHeader(canvas: Canvas) {
-        val paint = if (isViewed) viewedCardPaint else headerPaint
+        val paint = if (isViewed) viewedHearerPaint else headerPaint
         canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, paint)
     }
 
@@ -340,6 +342,7 @@ class NoteView @JvmOverloads constructor(
                 cardPaint.color = typedArray.getColor(R.styleable.NoteView_cardColor, cardPaint.color)
                 viewedCardPaint.color = typedArray.getColor(R.styleable.NoteView_viewedCardColor, viewedCardPaint.color)
                 headerPaint.color = typedArray.getColor(R.styleable.NoteView_headerColor, headerPaint.color)
+                viewedHearerPaint.color = typedArray.getColor(R.styleable.NoteView_viewedHeaderColor, viewedHearerPaint.color)
             }
             finally {
                 /* избегаем утечек памяти */

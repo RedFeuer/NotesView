@@ -16,6 +16,7 @@
         app:cardColor="@color/note_card_color"
         app:viewedCardColor="@color/viewed_note_card_color"
         app:headerColor="@color/note_header_color"
+        app:viewedHeaderColor="@color/viewed_header_color"
 
         app:title="Моя заметка"
         app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."

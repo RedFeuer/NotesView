@@ -7,6 +7,7 @@
     <color name="note_card_color">#F6F7FF</color>
     <color name="viewed_note_card_color">#EEEEEE</color>
     <color name="note_header_color">#6CB5FB</color>
+    <color name="viewed_header_color">#EEEEEE</color>
 
     <color name="note_title_text_color">#111111</color>
     <color name="note_content_text_color">#333333</color>

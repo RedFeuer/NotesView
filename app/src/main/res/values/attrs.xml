@@ -12,6 +12,7 @@
         <attr name="cardColor" format="reference|color"/>
         <attr name="viewedCardColor" format="reference|color"/>
         <attr name="headerColor" format="reference|color"/>
+        <attr name="viewedHeaderColor" format="reference|color"/>
         <attr name="titleTextColor" format="reference|color"/>
         <attr name="contentTextColor" format="reference|color"/>
         <attr name="createdAtTextColor" format="reference|color"/>
