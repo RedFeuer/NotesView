@@ -84,6 +84,9 @@ class NoteView @JvmOverloads constructor(
         color = Color.RED
     }
 
+    /* копируем исходную кисточку для карточки*/
+    private val viewedCardPaint = Paint(cardPaint)
+
     private val headerPaint = Paint().apply {
         style = Paint.Style.FILL
         color = Color.BLUE
@@ -226,7 +229,8 @@ class NoteView @JvmOverloads constructor(
     }
 
     private fun drawCard(canvas: Canvas) {
-        canvas.drawRoundRect(cardRect, cornerRadiusPx, cornerRadiusPx, cardPaint)
+        val paint = if (isViewed) viewedCardPaint else cardPaint
+        canvas.drawRoundRect(cardRect, cornerRadiusPx, cornerRadiusPx, paint)
     }
 
     private fun drawHeader(canvas: Canvas) {
@@ -281,8 +285,8 @@ class NoteView @JvmOverloads constructor(
                 val fadeRight = lineRight
                 val fadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
 
-                /* фон под фейд - цвет карточки */
-                val bgColor = cardPaint.color
+                /* фон под фейд - цвет карточки в зависимости от того просмотрена она или нет */
+                val bgColor = if (isViewed) viewedCardPaint.color else cardPaint.color
                 val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
 
                 fadePaint.shader = LinearGradient(
@@ -331,6 +335,7 @@ class NoteView @JvmOverloads constructor(
                 createdAtText = typedArray.getString(R.styleable.NoteView_createdAtText)
 
                 cardPaint.color = typedArray.getColor(R.styleable.NoteView_cardColor, cardPaint.color)
+                viewedCardPaint.color = typedArray.getColor(R.styleable.NoteView_viewedCardColor, viewedCardPaint.color)
                 headerPaint.color = typedArray.getColor(R.styleable.NoteView_headerColor, headerPaint.color)
             }
             finally {
