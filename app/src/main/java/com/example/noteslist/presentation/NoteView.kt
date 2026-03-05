@@ -36,6 +36,7 @@ class NoteView @JvmOverloads constructor(
     var isViewed: Boolean = false
         set(value) {
             field = value
+            updateDescriptionLayout()
             invalidate()
         }
     var description: String? = null
@@ -92,7 +93,7 @@ class NoteView @JvmOverloads constructor(
         color = Color.BLUE
     }
 
-    private val viewedHearerPaint = Paint(headerPaint)
+    private val viewedHeaderPaint = Paint(headerPaint)
 
     private val titleTextPaint = TextPaint().apply {
         isAntiAlias = true
@@ -100,15 +101,21 @@ class NoteView @JvmOverloads constructor(
         typeface = Typeface.DEFAULT_BOLD
     }
 
+    private val viewedTitleTextPaint = TextPaint(titleTextPaint)
+
     private val descriptionTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
     }
 
+    private val viewedDescriptionTextPaint = TextPaint(descriptionTextPaint)
+
     private val createdAtTextPaint = TextPaint().apply {
         isAntiAlias = true
         isSubpixelText = true
     }
+
+    private val viewedCreatedAtTextPaint = TextPaint(createdAtTextPaint)
 
     private val fadePaint = Paint().apply {
         isAntiAlias = true
@@ -189,7 +196,7 @@ class NoteView @JvmOverloads constructor(
         descriptionLayout = buildStaticLayout(
             text = text,
             maxLines = 2,
-            paint = descriptionTextPaint,
+            paint = if (isViewed) viewedDescriptionTextPaint else descriptionTextPaint,
             widthPx = w,
         ).also { layout ->
             descriptionTextMaxHeightPx = when {
@@ -238,7 +245,7 @@ class NoteView @JvmOverloads constructor(
 
     /* заливаем фон заголовка в зависимости от того, прочитана ли заметка */
     private fun drawHeader(canvas: Canvas) {
-        val paint = if (isViewed) viewedHearerPaint else headerPaint
+        val paint = if (isViewed) viewedHeaderPaint else headerPaint
         canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, paint)
     }
 
@@ -252,7 +259,9 @@ class NoteView @JvmOverloads constructor(
         val fontMetrics = titleTextPaint.fontMetrics
         val baseline = startY - fontMetrics.ascent // базовая линия для текста
 
-        canvas.drawText(text, startX, baseline, titleTextPaint)
+        val paint = if (isViewed) viewedTitleTextPaint else titleTextPaint
+
+        canvas.drawText(text, startX, baseline, paint)
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
@@ -320,7 +329,9 @@ class NoteView @JvmOverloads constructor(
         val fontMetrics = createdAtTextPaint.fontMetrics
         val baseline = startY - fontMetrics.descent // базовая линия для текста
 
-        canvas.drawText(text, startX, baseline, createdAtTextPaint)
+        val paint = if (isViewed) viewedCreatedAtTextPaint else createdAtTextPaint
+
+        canvas.drawText(text, startX, baseline, paint)
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
@@ -339,10 +350,19 @@ class NoteView @JvmOverloads constructor(
                 description = typedArray.getString(R.styleable.NoteView_description)
                 createdAtText = typedArray.getString(R.styleable.NoteView_createdAtText)
 
+                /* цвета заливки карточки и заголовка */
                 cardPaint.color = typedArray.getColor(R.styleable.NoteView_cardColor, cardPaint.color)
                 viewedCardPaint.color = typedArray.getColor(R.styleable.NoteView_viewedCardColor, viewedCardPaint.color)
                 headerPaint.color = typedArray.getColor(R.styleable.NoteView_headerColor, headerPaint.color)
-                viewedHearerPaint.color = typedArray.getColor(R.styleable.NoteView_viewedHeaderColor, viewedHearerPaint.color)
+                viewedHeaderPaint.color = typedArray.getColor(R.styleable.NoteView_viewedHeaderColor, viewedHeaderPaint.color)
+
+                /* цвета заливки текста */
+                titleTextPaint.color = typedArray.getColor(R.styleable.NoteView_titleTextColor, titleTextPaint.color)
+                viewedTitleTextPaint.color = typedArray.getColor(R.styleable.NoteView_viewedTitleTextColor, viewedTitleTextPaint.color)
+                descriptionTextPaint.color = typedArray.getColor(R.styleable.NoteView_descriptionTextColor, descriptionTextPaint.color)
+                viewedDescriptionTextPaint.color = typedArray.getColor(R.styleable.NoteView_viewedDescriptionTextColor, viewedDescriptionTextPaint.color)
+                createdAtTextPaint.color = typedArray.getColor(R.styleable.NoteView_viewedCreatedAtTextColor, createdAtTextPaint.color)
+                viewedCreatedAtTextPaint.color = typedArray.getColor(R.styleable.NoteView_viewedCreatedAtTextColor, viewedCreatedAtTextPaint.color)
             }
             finally {
                 /* избегаем утечек памяти */
@@ -355,10 +375,19 @@ class NoteView @JvmOverloads constructor(
         titleTextPaint.apply {
             textSize = resources.getDimension(R.dimen.note_view_title_text_size)
         }
+        viewedTitleTextPaint.apply {
+            textSize = resources.getDimension(R.dimen.note_view_title_text_size)
+        }
         descriptionTextPaint.apply {
             textSize = resources.getDimension(R.dimen.note_view_description_text_size)
         }
+        viewedDescriptionTextPaint.apply {
+            textSize = resources.getDimension(R.dimen.note_view_description_text_size)
+        }
         createdAtTextPaint.apply {
+            textSize = resources.getDimension(R.dimen.note_view_created_at_text_size)
+        }
+        viewedCreatedAtTextPaint.apply {
             textSize = resources.getDimension(R.dimen.note_view_created_at_text_size)
         }
     }
