@@ -133,11 +133,12 @@ class NoteView @JvmOverloads constructor(
     }
 
     private val innerTextPaddingPx = dp(INNER_TEXT_PADDING_DP)
-    private val cornerRadiusPx = dp(CORNER_RADIUS_DP)
+    private var cornerRadiusPx = dp(CORNER_RADIUS_DP)
+    private var elevationPx = dp(ELEVATION_DP)
     private val headerHeightPx = dp(HEADER_HEIGHT_DP)
     private val fadeWidthPx = dp(FADE_WIDTH_DP)
 
-    /* константы */
+    /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
         /* ширина карточки по умолчанию, если не указано в разметке (dimens.xml) */
         private const val DEFAULT_WIDTH_DP = 200f
@@ -147,6 +148,8 @@ class NoteView @JvmOverloads constructor(
         private const val INNER_TEXT_PADDING_DP = 18f
         /* скругление карточки */
         private const val CORNER_RADIUS_DP = 16f
+        /* тень для карточки */
+        private const val ELEVATION_DP = 4f
         /* высота заголовка */
         private const val HEADER_HEIGHT_DP = 72f
         /* максимальное количество строк в description */
@@ -175,6 +178,8 @@ class NoteView @JvmOverloads constructor(
             /* получаем размеры карточки из dimens.xml */
             defaultWidthPx = getDimension(R.dimen.note_view_width)
             defaultHeightPx = getDimension(R.dimen.note_view_height)
+            cornerRadiusPx = getDimension(R.dimen.note_view_corner_radius)
+            elevationPx = getDimension(R.dimen.note_view_elevation)
         }
 
         /* инициализация атрибутов */
