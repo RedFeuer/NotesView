@@ -8,11 +8,13 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.appcompat.content.res.AppCompatResources
 import com.example.noteslist.R
 import kotlin.math.min
 
@@ -48,8 +50,8 @@ class NoteView @JvmOverloads constructor(
 
     /* галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
-    private val viewedIconSizePx = dp(20f).toInt()
-    private val viewedIconMarginPx = dp(16f).toInt()
+    private val viewedIconSizePx = dp(VIEWED_ICON_SIZE_DP).toInt()
+    private val viewedIconMarginPx = dp(VIEWED_ICON_MARGIN_DP).toInt()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -126,19 +128,33 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
+    private val innerTextPaddingPx = dp(INNER_TEXT_PADDING_DP)
+    private val cornerRadiusPx = dp(CORNER_RADIUS_DP)
+    private val headerHeightPx = dp(HEADER_HEIGHT_DP)
+    private val fadeWidthPx = dp(FADE_WIDTH_DP)
+
     /* константы */
     companion object {
+        /* ширина карточки по умолчанию, если не указано в разметке (dimens.xml) */
+        private const val DEFAULT_WIDTH_DP = 200f
+        /* высота карточки по умолчанию, если не указано в разметке (dimens.xml) */
+        private const val DEFAULT_HEIGHT_DP = 80f
+        /* отступ любого текста от начала карточки */
+        private const val INNER_TEXT_PADDING_DP = 18f
         /* скругление карточки */
-        const val cornerRadiusPx = 32f
+        private const val CORNER_RADIUS_DP = 16f
         /* высота заголовка */
-        const val headerHeightPx = 144f
+        private const val HEADER_HEIGHT_DP = 72f
         /* ширина fade для description */
-        const val fadeWidthPx = 108f
+        private const val FADE_WIDTH_DP = 72f
+        /* размер иконки галочки, что заметка прочитана */
+        private const val VIEWED_ICON_SIZE_DP = 20f
+         /* отступ иконки галочки от края карточки */
+         private const val VIEWED_ICON_MARGIN_DP = 16f
     }
 
-    /* размеры по умолчанию, если не указано в разметке (dimens.xml) */
-    private var defaultWidthPx = 200f
-    private var defaultHeightPx = 80f
+    private var defaultWidthPx = dp(DEFAULT_WIDTH_DP)
+    private var defaultHeightPx = dp(DEFAULT_HEIGHT_DP)
 
     init {
         context.resources.apply {
@@ -228,7 +244,7 @@ class NoteView @JvmOverloads constructor(
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
 
         /* считаем ширину description (отнимаем два отступа - слева и справа) */
-        val innerPaddingX = 36f
+        val innerPaddingX = innerTextPaddingPx
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
     }
 
@@ -266,8 +282,8 @@ class NoteView @JvmOverloads constructor(
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
         /* отступы внутри header */
-        val startX = headerRect.left + 36f
-        val startY = headerRect.top + 36f
+        val startX = headerRect.left + innerTextPaddingPx
+        val startY = headerRect.top + innerTextPaddingPx
 
         val fontMetrics = titleTextPaint.fontMetrics
         val baseline = startY - fontMetrics.ascent // базовая линия для текста
@@ -282,8 +298,8 @@ class NoteView @JvmOverloads constructor(
         val layout = descriptionLayout ?: return
         if (descriptionTextMaxHeightPx <= 0 || descriptionTextWidthPx <= 0) return
 
-        val startX = cardRect.left + 36f
-        val startY = headerRect.bottom + 36f
+        val startX = cardRect.left + innerTextPaddingPx
+        val startY = headerRect.bottom + innerTextPaddingPx
 
         canvas.save()
         canvas.translate(startX, startY)
@@ -336,8 +352,8 @@ class NoteView @JvmOverloads constructor(
         val text = createdAtText?.takeIf { it.isNotBlank() } ?: return
 
         /* отступы внутри карточки */
-        val startX = cardRect.left + 36f
-        val startY = cardRect.bottom - 36f
+        val startX = cardRect.left + innerTextPaddingPx
+        val startY = cardRect.bottom - innerTextPaddingPx
 
         val fontMetrics = createdAtTextPaint.fontMetrics
         val baseline = startY - fontMetrics.descent // базовая линия для текста
