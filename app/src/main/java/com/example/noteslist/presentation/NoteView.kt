@@ -48,10 +48,14 @@ class NoteView @JvmOverloads constructor(
             invalidate()
         }
 
-    /* галочка для просмотренной заметки */
+    /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
     private val viewedIconSizePx = dp(VIEWED_ICON_SIZE_DP).toInt()
     private val viewedIconMarginPx = dp(VIEWED_ICON_MARGIN_DP).toInt()
+    /* иконка-звездочка для важной заметки */
+    private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
+    private val importantIconSizePx = dp(IMPORTANT_ICON_SIZE_DP).toInt()
+    private val importantIconMarginPx = dp(IMPORTANT_ICON_MARGIN_DP).toInt()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -151,6 +155,10 @@ class NoteView @JvmOverloads constructor(
         private const val VIEWED_ICON_SIZE_DP = 20f
          /* отступ иконки галочки от края карточки */
          private const val VIEWED_ICON_MARGIN_DP = 16f
+        /* размер иконки звездочки, что заметка важная */
+        private const val IMPORTANT_ICON_SIZE_DP = 32f
+        /* отступ иконки звездочки от края карточки */
+        private const val IMPORTANT_ICON_MARGIN_DP = 16f
     }
 
     private var defaultWidthPx = dp(DEFAULT_WIDTH_DP)
@@ -172,6 +180,14 @@ class NoteView @JvmOverloads constructor(
 
     /* вспомогательная функция для конвертации dp в пиксели для корректного отображения на разных устройствах */
     private fun dp(v: Float) = v * resources.displayMetrics.density
+
+    private fun titleStartX(): Float {
+        val base = headerRect.left + innerTextPaddingPx
+        if (!isImportant) {
+            return base
+        }
+        return base + importantIconSizePx + importantIconMarginPx
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         /* предпочитаемые ширина и высота */
@@ -255,6 +271,10 @@ class NoteView @JvmOverloads constructor(
         drawCard(canvas)
         drawHeader(canvas)
 
+        if (isImportant) {
+            drawImportantIcon(canvas)
+        }
+
         /* текст */
         drawTitle(canvas)
         drawDescription(canvas)
@@ -278,11 +298,24 @@ class NoteView @JvmOverloads constructor(
         canvas.drawRoundRect(headerRect,cornerRadiusPx, cornerRadiusPx, paint)
     }
 
+    private fun drawImportantIcon(canvas: Canvas) {
+        val icon = importantIcon ?: return
+
+        val left = (headerRect.left + importantIconMarginPx).toInt()
+        val right = left + importantIconSizePx
+        val top = (headerRect.top + importantIconMarginPx).toInt()
+        val bottom = top + importantIconSizePx
+
+        icon.setBounds(left, top, right, bottom)
+
+        icon.draw(canvas)
+    }
+
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
         /* отступы внутри header */
-        val startX = headerRect.left + innerTextPaddingPx
+        val startX = titleStartX()
         val startY = headerRect.top + innerTextPaddingPx
 
         val fontMetrics = titleTextPaint.fontMetrics
