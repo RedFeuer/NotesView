@@ -13,26 +13,15 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
 
-        app:cardColor="@color/note_card_color"
-        app:viewedCardColor="@color/viewed_note_card_color"
-        app:headerColor="@color/note_header_color"
-        app:viewedHeaderColor="@color/viewed_header_color"
+        style="@style/NoteStyle.IsNotViewed"
 
         app:noteCornerRadius="@dimen/note_view_corner_radius"
         app:noteElevation="@dimen/note_view_elevation"
-
-        app:titleTextColor="@color/note_title_text_color"
-        app:viewedTitleTextColor="@color/viewed_note_title_text_color"
-        app:descriptionTextColor="@color/note_content_text_color"
-        app:viewedDescriptionTextColor="@color/viewed_note_content_text_color"
-        app:createdAtTextColor="@color/note_created_at_text_color"
-        app:viewedCreatedAtTextColor="@color/viewed_note_created_at_text_color"
 
         app:title="Моя заметка"
         app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."
         app:createdAtText="01.03.2026 20:26"
         app:isImportant="true"
-        app:isViewed="false"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
