@@ -29,7 +29,7 @@
         app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."
         app:createdAtText="01.03.2026 20:26"
         app:isImportant="true"
-        app:isViewed="true"
+        app:isViewed="false"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -165,6 +165,10 @@ class NoteView @JvmOverloads constructor(
     private var defaultHeightPx = dp(DEFAULT_HEIGHT_DP)
 
     init {
+        /* добавили кликабельность */
+        isClickable = true
+        isFocusable = true
+
         context.resources.apply {
             /* получаем размеры карточки из dimens.xml */
             defaultWidthPx = getDimension(R.dimen.note_view_width)
@@ -187,6 +191,16 @@ class NoteView @JvmOverloads constructor(
             return base
         }
         return base + importantIconSizePx + importantIconMarginPx
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        /* при клике помечаем заметку как просмотренную и перерисовываем */
+        if (!isViewed) {
+            isViewed = true
+        }
+//        isViewed = !isViewed // для теста - переключение состояния при каждом клике
+        return true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
