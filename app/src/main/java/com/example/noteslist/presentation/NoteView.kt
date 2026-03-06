@@ -149,7 +149,7 @@ class NoteView @JvmOverloads constructor(
         /* скругление карточки */
         private const val CORNER_RADIUS_DP = 16f
         /* тень для карточки */
-        private const val ELEVATION_DP = 4f
+        private const val ELEVATION_DP = 8f
         /* высота заголовка */
         private const val HEADER_HEIGHT_DP = 72f
         /* максимальное количество строк в description */
@@ -173,6 +173,9 @@ class NoteView @JvmOverloads constructor(
         /* добавили кликабельность */
         isClickable = true
         isFocusable = true
+
+        /* отключаем аппаратное ускорение для корректного отображения тени и фейда */
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
 
         context.resources.apply {
             /* получаем размеры карточки из dimens.xml */
@@ -267,10 +270,12 @@ class NoteView @JvmOverloads constructor(
 
     /* пересчет размеров заметки (карточка + название) */
     private fun updateSize(w: Int = width, h: Int = height) {
-        val left = paddingLeft.toFloat()
-        val top = paddingTop.toFloat()
-        val right = w.toFloat() - paddingRight.toFloat()
-        val bottom = h.toFloat() - paddingBottom.toFloat()
+        val shadowPaddingPx = elevationPx
+
+        val left = paddingLeft.toFloat() + shadowPaddingPx
+        val top = paddingTop.toFloat() + shadowPaddingPx
+        val right = w.toFloat() - paddingRight.toFloat() - shadowPaddingPx
+        val bottom = h.toFloat() - paddingBottom.toFloat() - shadowPaddingPx
 
         cardRect.set(left, top, right, bottom)
 
@@ -307,6 +312,20 @@ class NoteView @JvmOverloads constructor(
     /* заливаем фон карточки в зависимости от того, прочитана ли заметка */
     private fun drawCard(canvas: Canvas) {
         val paint = if (isViewed) viewedCardPaint else cardPaint
+
+        if (elevationPx > 0) {
+            /* рисуем тень для карточки, если задано значение elevation */
+            paint.setShadowLayer(
+                elevationPx,
+                0f,
+                elevationPx / 2, // смещение тени вниз для более реалистичного эффекта
+                Color.argb(50, 0, 0, 0) // полупрозрачная белая тень
+            )
+        }
+        else {
+            paint.clearShadowLayer() // если elevation 0, убираем тень
+        }
+
         canvas.drawRoundRect(cardRect, cornerRadiusPx, cornerRadiusPx, paint)
     }
 
