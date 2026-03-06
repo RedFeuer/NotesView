@@ -18,6 +18,9 @@
         app:headerColor="@color/note_header_color"
         app:viewedHeaderColor="@color/viewed_header_color"
 
+        app:noteCornerRadius="@dimen/note_view_corner_radius"
+        app:noteElevation="@dimen/note_view_elevation"
+
         app:titleTextColor="@color/note_title_text_color"
         app:viewedTitleTextColor="@color/viewed_note_title_text_color"
         app:descriptionTextColor="@color/note_content_text_color"

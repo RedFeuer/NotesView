@@ -19,5 +19,9 @@
         <attr name="viewedDescriptionTextColor" format="reference|color"/>
         <attr name="createdAtTextColor" format="reference|color"/>
         <attr name="viewedCreatedAtTextColor" format="reference|color"/>
+
+        <!-- Размеры -->
+        <attr name="noteCornerRadius" format="dimension"/>
+        <attr name="noteElevation" format="dimension"/>
     </declare-styleable>
 </resources>
