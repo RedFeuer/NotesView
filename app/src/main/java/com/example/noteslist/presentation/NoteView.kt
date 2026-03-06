@@ -45,6 +45,11 @@ class NoteView @JvmOverloads constructor(
             updateDescriptionLayout() // при изменении текста пересчитываем layout
             invalidate()
         }
+
+    /* галочка для просмотренной заметки */
+    private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
+    private val viewedIconSizePx = dp(20f).toInt()
+    private val viewedIconMarginPx = dp(16f).toInt()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -235,6 +240,11 @@ class NoteView @JvmOverloads constructor(
         drawTitle(canvas)
         drawDescription(canvas)
         drawCreatedAt(canvas)
+
+        /* если заметка просмотрена, рисуем галочку */
+        if (isViewed) {
+            drawViewedIcon(canvas)
+        }
     }
 
     /* заливаем фон карточки в зависимости от того, прочитана ли заметка */
@@ -332,6 +342,19 @@ class NoteView @JvmOverloads constructor(
         val paint = if (isViewed) viewedCreatedAtTextPaint else createdAtTextPaint
 
         canvas.drawText(text, startX, baseline, paint)
+    }
+
+    private fun drawViewedIcon(canvas: Canvas) {
+        val icon = viewedIcon ?: return
+
+        val right = (cardRect.right - viewedIconMarginPx).toInt()
+        val left = right - viewedIconSizePx
+        val bottom = (cardRect.bottom - viewedIconMarginPx).toInt()
+        val top = bottom - viewedIconSizePx
+
+        icon.setBounds(left, top, right, bottom)
+
+        icon.draw(canvas)
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
