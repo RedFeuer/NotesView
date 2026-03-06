@@ -149,6 +149,8 @@ class NoteView @JvmOverloads constructor(
         private const val CORNER_RADIUS_DP = 16f
         /* высота заголовка */
         private const val HEADER_HEIGHT_DP = 72f
+        /* максимальное количество строк в description */
+        private const val MAX_DESCRIPTION_LINES = 2
         /* ширина fade для description */
         private const val FADE_WIDTH_DP = 72f
         /* размер иконки галочки, что заметка прочитана */
@@ -237,27 +239,24 @@ class NoteView @JvmOverloads constructor(
         val w = descriptionTextWidthPx
         if (w <= 0) return // если ширина не задана, не строим layout
 
-        /* выставляем флаг, что строк больше 2 */
+        /* выставляем флаг, что строк больше MAX_DESCRIPTION_LINES */
         val full = buildStaticLayout(
             text = text,
             maxLines = Int.MAX_VALUE,
             paint = descriptionTextPaint,
             widthPx = w,
         )
-        descriptionOverflow = full.lineCount > 2
+        descriptionOverflow = full.lineCount > MAX_DESCRIPTION_LINES
 
-        /* текстовая разметка, ограниченная 2 строками*/
+        /* текстовая разметка, ограниченная MAX_DESCRIPTION_LINES строками*/
         descriptionLayout = buildStaticLayout(
             text = text,
-            maxLines = 2,
+            maxLines = MAX_DESCRIPTION_LINES,
             paint = if (isViewed) viewedDescriptionTextPaint else descriptionTextPaint,
             widthPx = w,
         ).also { layout ->
-            descriptionTextMaxHeightPx = when {
-                layout.lineCount >= 2 -> layout.getLineBottom(1)
-                layout.lineCount == 1 -> layout.getLineBottom(0)
-                else -> 0
-            }
+            val lastLineIndex = min(layout.lineCount, MAX_DESCRIPTION_LINES) - 1
+            descriptionTextMaxHeightPx = if (lastLineIndex >= 0) layout.getLineBottom(lastLineIndex) else 0
         }
     }
 
@@ -361,13 +360,13 @@ class NoteView @JvmOverloads constructor(
         layout.draw(canvas)
 
         /* если текста больше 2 строчек, то фейдим конец 2-й строки */
-        if (descriptionOverflow && layout.lineCount >= 2) {
-            val line = 1 // 2-я строка
-            val top = layout.getLineTop(line).toFloat()
-            val bottom = layout.getLineBottom(line).toFloat()
+        if (descriptionOverflow && layout.lineCount >= MAX_DESCRIPTION_LINES) {
+            val lineIndex = MAX_DESCRIPTION_LINES - 1 // 2-я строка
+            val top = layout.getLineTop(lineIndex).toFloat()
+            val bottom = layout.getLineBottom(lineIndex).toFloat()
 
             /* конец текста на 2-й строке */
-            val lineRight = layout.getLineRight(line).coerceAtMost(descriptionTextWidthPx.toFloat())
+            val lineRight = layout.getLineRight(lineIndex).coerceAtMost(descriptionTextWidthPx.toFloat())
 
             if (lineRight > 0) { // если строка пустая - нечего фейдить
                 /* границы фейда:
