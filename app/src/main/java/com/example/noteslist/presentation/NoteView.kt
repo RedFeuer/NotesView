@@ -154,6 +154,9 @@ class NoteView @JvmOverloads constructor(
         initPaints()
     }
 
+    /* вспомогательная функция для конвертации dp в пиксели для корректного отображения на разных устройствах */
+    private fun dp(v: Float) = v * resources.displayMetrics.density
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         /* предпочитаемые ширина и высота */
         val desiredWidth = defaultWidthPx.toInt() + paddingLeft + paddingRight
