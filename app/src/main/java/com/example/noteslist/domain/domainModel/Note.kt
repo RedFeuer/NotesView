@@ -7,7 +7,7 @@ data class Note(
     * 2) заметка с списком дел */
 
     /* уникальный идентификатор заметки */
-    val id: Long = System.currentTimeMillis(), // по умолчанию id равен времени создания
+    val id: Long = 0, // Room потом нагенерит через PrimaryKey(autoGenerate = true) в Entity
     /* заголовок заметки */
     val title: String? = null, // по умолчанию создается заметка без названия
     /* важность заметки */
