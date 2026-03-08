@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:stackMaxSize="@integer/stack_max_size"
-        app:stackSpacing="@dimen/stack_spacing" />
+        app:stackSpacingVertically="@dimen/stack_spacing_vertically"
+        app:stackSpacingHorizontally="@dimen/stack_spacing_horizontally"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,7 +3,8 @@
     <declare-styleable name="NoteStackView">
         <!-- Кастомные атрибуты для NoteStackView -->
         <attr name="stackMaxSize" format="integer"/>
-        <attr name="stackSpacing" format="dimension"/>
+        <attr name="stackSpacingVertically" format="dimension"/>
+        <attr name="stackSpacingHorizontally" format="dimension"/>
     </declare-styleable>
 
     <declare-styleable name="NoteView">
