@@ -45,7 +45,8 @@ class NoteStackView @JvmOverloads constructor(
         setOnClickListener {
             if (notes.isNotEmpty() && !isExpanded) {
                 isExpanded = true
-                requestLayout() // перерисовываем View, чтобы отобразить изменения в расположении заметок
+                /* перерисовка дочерних элементов NoteStackView при изменении состояния стека */
+                rebuildChildren()
             }
         }
     }
@@ -92,6 +93,7 @@ class NoteStackView @JvmOverloads constructor(
         rebuildChildren() // обновляем отображение заметок в стеке
     }
 
+    /* метод для перерисовки дочерних элементов NoteStackView при изменении данных или состояния стека */
     private fun rebuildChildren() {
         /* удаляем все текущие NoteView из NoteStackView */
         removeAllViews()
@@ -134,6 +136,12 @@ class NoteStackView @JvmOverloads constructor(
             )
 
             bind(noteUi) // привязываем данные заметки к NoteView: NoteUi -> NoteView
+
+            /* в свернутом состоянии кликабелен сам стек, а не отдельные заметки
+            в развернутом состоянии кликабельность и фокус у каждой заметки,
+            чтобы можно было взаимодействовать с ними индивидуально*/
+            isClickable = isExpanded
+            isFocusable = isExpanded
         }
     }
 
