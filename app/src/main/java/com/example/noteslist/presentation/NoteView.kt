@@ -183,6 +183,14 @@ class NoteView @JvmOverloads constructor(
         initPaints()
     }
 
+    fun bind(note: NoteUi) {
+        title = note.title
+        isImportant = note.isImportant
+        isViewed = note.isViewed
+        description = note.description
+        createdAtText = note.createdAt
+    }
+
     private fun titleStartX(): Float {
         val base = headerRect.left + innerTextPaddingPx
         if (!isImportant) {
