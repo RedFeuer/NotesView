@@ -13,7 +13,8 @@ class NoteStackView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
-    private var stackSpacingPx: Int = STACK_SPACING_DP.dpToPx.toInt()
+    private var stackSpacingPx: Int = STACK_SPACING_DP.dpToPx
+    private var stackHorizontalOffsetPx: Int = STACK_HORIZONTAL_OFFSET_DP.dpToPx
     private var stackMaxSize: Int = STACK_MAX_SIZE
 
     /* флаг, указывающий, развернут ли стек заметок или свернут */
@@ -40,7 +41,9 @@ class NoteStackView @JvmOverloads constructor(
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
         /* отступ между заметками в стеке */
-        private const val STACK_SPACING_DP = 20f
+        private const val STACK_SPACING_DP = 20
+        /* горизонтальный сдвиг видимых заметок в стеке */
+        private const val STACK_HORIZONTAL_OFFSET_DP = 8
         /* максимальное количество видимых заметок в стеке */
         private const val STACK_MAX_SIZE = 3
     }
@@ -74,7 +77,7 @@ class NoteStackView @JvmOverloads constructor(
             try {
                 stackSpacingPx = typedArray.getDimensionPixelSize(
                     R.styleable.NoteStackView_stackSpacing,
-                    STACK_SPACING_DP.dpToPx.toInt()
+                    STACK_SPACING_DP.dpToPx
                 )
                 stackMaxSize = typedArray.getInt(
                     R.styleable.NoteStackView_stackMaxSize,
@@ -249,7 +252,9 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 /* для создания эффекта наложения, каждый последующий элемент смещается вниз на stackSpacingPx относительно предыдущего */
+                val left = paddingLeft + i * stackHorizontalOffsetPx
                 val top = paddingTop + i * stackSpacingPx
+//                val right = left + child.measuredWidth
                 val bottom = top + child.measuredHeight
                 child.layout(left, top, right, bottom)
             }
