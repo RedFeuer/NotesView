@@ -13,8 +13,8 @@ class NoteStackView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
-    private var stackSpacingPx: Int = STACK_SPACING_DP.dpToPx
-    private var stackHorizontalOffsetPx: Int = STACK_HORIZONTAL_OFFSET_DP.dpToPx
+    private var stackSpacingVerticallyPx: Int = STACK_SPACING_VERTICALLY_DP.dpToPx
+    private var stackSpacingHorizontallyPx: Int = STACK_SPACING_HORIZONTALLY_DP.dpToPx
     private var stackMaxSize: Int = STACK_MAX_SIZE
 
     /* флаг, указывающий, развернут ли стек заметок или свернут */
@@ -41,9 +41,9 @@ class NoteStackView @JvmOverloads constructor(
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
         /* отступ между заметками в стеке */
-        private const val STACK_SPACING_DP = 20
+        private const val STACK_SPACING_VERTICALLY_DP = 20
         /* горизонтальный сдвиг видимых заметок в стеке */
-        private const val STACK_HORIZONTAL_OFFSET_DP = 8
+        private const val STACK_SPACING_HORIZONTALLY_DP = 8
         /* максимальное количество видимых заметок в стеке */
         private const val STACK_MAX_SIZE = 3
     }
@@ -75,9 +75,13 @@ class NoteStackView @JvmOverloads constructor(
             )
 
             try {
-                stackSpacingPx = typedArray.getDimensionPixelSize(
-                    R.styleable.NoteStackView_stackSpacing,
-                    STACK_SPACING_DP.dpToPx
+                stackSpacingVerticallyPx = typedArray.getDimensionPixelSize(
+                    R.styleable.NoteStackView_stackSpacingVertically,
+                    STACK_SPACING_VERTICALLY_DP.dpToPx
+                )
+                stackSpacingHorizontallyPx = typedArray.getDimensionPixelSize(
+                    R.styleable.NoteStackView_stackSpacingHorizontally,
+                    STACK_SPACING_HORIZONTALLY_DP.dpToPx
                 )
                 stackMaxSize = typedArray.getInt(
                     R.styleable.NoteStackView_stackMaxSize,
@@ -209,7 +213,7 @@ class NoteStackView @JvmOverloads constructor(
                 /* свернутый стек,
                 высота стека - это высота верхней заметки + отступы */
                 val frontChildHeight = getChildAt(childCount - 1).measuredHeight
-                totalHeight += frontChildHeight + stackSpacingPx * (stackMaxSize - 1) // добавляем отступы для остальных заметок в стеке
+                totalHeight += frontChildHeight + stackSpacingVerticallyPx * (stackMaxSize - 1) // добавляем отступы для остальных заметок в стеке
             }
         }
         else {
@@ -221,7 +225,7 @@ class NoteStackView @JvmOverloads constructor(
 
                 totalHeight += child.measuredHeight// добавляем высоту заметки
                 if (i != childCount - 1) {
-                    totalHeight += stackSpacingPx // добавляем отступ между заметками, кроме последней
+                    totalHeight += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
                 }
             }
         }
@@ -252,9 +256,9 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 /* для создания эффекта наложения, каждый последующий элемент смещается вниз на stackSpacingPx относительно предыдущего */
-                val left = paddingLeft + i * stackHorizontalOffsetPx
-                val top = paddingTop + i * stackSpacingPx
-//                val right = left + child.measuredWidth
+                val left = paddingLeft + i * stackSpacingHorizontallyPx
+                val top = paddingTop + i * stackSpacingVerticallyPx
+//                val right = left + child.measuredWidth - НЕ НУЖНО
                 val bottom = top + child.measuredHeight
                 child.layout(left, top, right, bottom)
             }
@@ -275,7 +279,7 @@ class NoteStackView @JvmOverloads constructor(
                 /* обновляем текущую верхнюю позицию для следующей заметки, добавляя высоту текущей заметки и отступ */
                 currentTop = bottom
                 if (i != childCount - 1) {
-                    currentTop += stackSpacingPx // добавляем отступ между заметками, кроме последней
+                    currentTop += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
                 }
             }
         }
