@@ -51,12 +51,12 @@ class NoteView @JvmOverloads constructor(
 
     /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
-    private val viewedIconSizePx = dp(VIEWED_ICON_SIZE_DP).toInt()
-    private val viewedIconMarginPx = dp(VIEWED_ICON_MARGIN_DP).toInt()
+    private val viewedIconSizePx = VIEWED_ICON_SIZE_DP.dpToPx.toInt()
+    private val viewedIconMarginPx = VIEWED_ICON_MARGIN_DP.dpToPx.toInt()
     /* иконка-звездочка для важной заметки */
     private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
-    private val importantIconSizePx = dp(IMPORTANT_ICON_SIZE_DP).toInt()
-    private val importantIconMarginPx = dp(IMPORTANT_ICON_MARGIN_DP).toInt()
+    private val importantIconSizePx = IMPORTANT_ICON_SIZE_DP.dpToPx.toInt()
+    private val importantIconMarginPx = IMPORTANT_ICON_MARGIN_DP.dpToPx.toInt()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -122,11 +122,11 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    private val innerTextPaddingPx = dp(INNER_TEXT_PADDING_DP)
-    private var cornerRadiusPx = dp(CORNER_RADIUS_DP)
-    private var elevationPx = dp(ELEVATION_DP)
-    private val headerHeightPx = dp(HEADER_HEIGHT_DP)
-    private val fadeWidthPx = dp(FADE_WIDTH_DP)
+    private val innerTextPaddingPx = INNER_TEXT_PADDING_DP.dpToPx
+    private var cornerRadiusPx = CORNER_RADIUS_DP.dpToPx
+    private var elevationPx = ELEVATION_DP.dpToPx
+    private val headerHeightPx = HEADER_HEIGHT_DP.dpToPx
+    private val fadeWidthPx = FADE_WIDTH_DP.dpToPx
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -156,8 +156,8 @@ class NoteView @JvmOverloads constructor(
         private const val IMPORTANT_ICON_MARGIN_DP = 16f
     }
 
-    private var defaultWidthPx = dp(DEFAULT_WIDTH_DP)
-    private var defaultHeightPx = dp(DEFAULT_HEIGHT_DP)
+    private var defaultWidthPx = DEFAULT_WIDTH_DP.dpToPx
+    private var defaultHeightPx = DEFAULT_HEIGHT_DP.dpToPx
 
     init {
         /* добавили кликабельность */
@@ -182,9 +182,6 @@ class NoteView @JvmOverloads constructor(
         /* инициализация Paint'ов */
         initPaints()
     }
-
-    /* вспомогательная функция для конвертации dp в пиксели для корректного отображения на разных устройствах */
-    private fun dp(v: Float) = v * resources.displayMetrics.density
 
     private fun titleStartX(): Float {
         val base = headerRect.left + innerTextPaddingPx
