@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
-        app:stackMaxSize="@dimen/stack_max_size"
+        app:stackMaxSize="@integer/stack_max_size"
         app:stackSpacing="@dimen/stack_spacing" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
