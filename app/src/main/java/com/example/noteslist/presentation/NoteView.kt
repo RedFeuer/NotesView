@@ -51,12 +51,12 @@ class NoteView @JvmOverloads constructor(
 
     /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
-    private val viewedIconSizePx = VIEWED_ICON_SIZE_DP.dpToPx.toInt()
-    private val viewedIconMarginPx = VIEWED_ICON_MARGIN_DP.dpToPx.toInt()
+    private val viewedIconSizePx = VIEWED_ICON_SIZE_DP.dpToPx
+    private val viewedIconMarginPx = VIEWED_ICON_MARGIN_DP.dpToPx
     /* иконка-звездочка для важной заметки */
     private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
-    private val importantIconSizePx = IMPORTANT_ICON_SIZE_DP.dpToPx.toInt()
-    private val importantIconMarginPx = IMPORTANT_ICON_MARGIN_DP.dpToPx.toInt()
+    private val importantIconSizePx = IMPORTANT_ICON_SIZE_DP.dpToPx
+    private val importantIconMarginPx = IMPORTANT_ICON_MARGIN_DP.dpToPx
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -147,13 +147,13 @@ class NoteView @JvmOverloads constructor(
         /* ширина fade для description */
         private const val FADE_WIDTH_DP = 72f
         /* размер иконки галочки, что заметка прочитана */
-        private const val VIEWED_ICON_SIZE_DP = 20f
+        private const val VIEWED_ICON_SIZE_DP = 20
          /* отступ иконки галочки от края карточки */
-         private const val VIEWED_ICON_MARGIN_DP = 16f
+         private const val VIEWED_ICON_MARGIN_DP = 16
         /* размер иконки звездочки, что заметка важная */
-        private const val IMPORTANT_ICON_SIZE_DP = 32f
+        private const val IMPORTANT_ICON_SIZE_DP = 32
         /* отступ иконки звездочки от края карточки */
-        private const val IMPORTANT_ICON_MARGIN_DP = 16f
+        private const val IMPORTANT_ICON_MARGIN_DP = 16
     }
 
     private var defaultWidthPx = DEFAULT_WIDTH_DP.dpToPx
