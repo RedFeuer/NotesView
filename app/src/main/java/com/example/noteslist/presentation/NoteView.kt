@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
@@ -347,16 +348,31 @@ class NoteView @JvmOverloads constructor(
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
-        /* отступы внутри header */
+        /* левая и правая границы текста */
         val startX = titleStartX()
+        val endX = headerRect.right - innerTextPaddingPx
+        /* доступная ширина заголовка */
+        val availableWidth = (endX - startX).coerceAtLeast(0f)
+
+        if (availableWidth <= 0) return // если нет места для текста, не рисуем
+
+        /* вертикальная позиция текста - отступ от верхней границы заголовка */
         val startY = headerRect.top + innerTextPaddingPx
 
         val fontMetrics = titleTextPaint.fontMetrics
-        val baseline = startY - fontMetrics.ascent // базовая линия для текста
+        /* базовая линия для текста - отступ от верхней границы до базовой линии */
+        val baseline = startY - fontMetrics.ascent
 
         val paint = titleTextPaint
 
-        canvas.drawText(text, startX, baseline, paint)
+        val ellipsizedTitle = TextUtils.ellipsize(
+            text,
+            paint,
+            availableWidth,
+            TextUtils.TruncateAt.END
+        ).toString()
+
+        canvas.drawText(ellipsizedTitle, startX, baseline, paint)
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
