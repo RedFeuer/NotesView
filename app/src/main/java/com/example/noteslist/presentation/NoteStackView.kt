@@ -3,7 +3,6 @@ package com.example.noteslist.presentation
 import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
 import com.example.noteslist.R
