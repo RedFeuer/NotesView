@@ -7,4 +7,7 @@
     <dimen name="note_view_title_text_size">24sp</dimen>
     <dimen name="note_view_description_text_size">18sp</dimen>
     <dimen name="note_view_created_at_text_size">14sp</dimen>
+    
+    <dimen name="stack_max_size">3</dimen>
+    <dimen name="stack_spacing">20dp</dimen>
 </resources>

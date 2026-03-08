@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="NoteStackView">
+        <!-- Кастомные атрибуты для NoteStackView -->
+        <attr name="stackMaxSize" format="integer"/>
+        <attr name="stackSpacing" format="dimension"/>
+    </declare-styleable>
+
     <declare-styleable name="NoteView">
         <!-- Кастомные атрибуты для NoteView -->
         <attr name="title" format="string"/>
