@@ -3,6 +3,8 @@ package com.example.noteslist.presentation
 import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
@@ -24,6 +26,18 @@ class NoteStackView @JvmOverloads constructor(
     /* маппер Note -> NoteUi */
     private val noteMapper = NoteMapper()
 
+    /* кнопка сворачивания заметок в развернутом состоянии */
+    private val collapseView: AppCompatTextView = AppCompatTextView(context).apply {
+        text = "<< Свернуть"
+        textSize = 16f
+        setPadding(12.dpToPx, 8.dpToPx, 12.dpToPx, 8.dpToPx)
+        isClickable = true
+        isFocusable = true
+        setOnClickListener {
+            setExpanded(false)
+        }
+    }
+
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
         /* отступ между заметками в стеке */
@@ -44,9 +58,7 @@ class NoteStackView @JvmOverloads constructor(
         /* при клике на NoteStackView переключаем состояние между развернутым и свернутым */
         setOnClickListener {
             if (notes.isNotEmpty() && !isExpanded) {
-                isExpanded = true
-                /* перерисовка дочерних элементов NoteStackView при изменении состояния стека */
-                rebuildChildren()
+                setExpanded(true)
             }
         }
     }
@@ -93,6 +105,14 @@ class NoteStackView @JvmOverloads constructor(
         rebuildChildren() // обновляем отображение заметок в стеке
     }
 
+    /* метод для изменения состояния стека между развернутым и свернутым
+    * обновляет состояние экрана */
+    private fun setExpanded(expanded: Boolean) {
+        if (expanded == isExpanded) return // если состояние не изменилось, ничего не делаем
+        isExpanded = expanded
+        rebuildChildren() // обновляем отображение заметок в стеке при изменении состояния
+    }
+
     /* метод для перерисовки дочерних элементов NoteStackView при изменении данных или состояния стека */
     private fun rebuildChildren() {
         /* удаляем все текущие NoteView из NoteStackView */
@@ -111,7 +131,7 @@ class NoteStackView @JvmOverloads constructor(
                 child.elevation = (notes.size - index).toFloat()
                 addView(child)
             }
-            /* TODO: добавить кнопку сворачивания */
+            addView(collapseView) // добавляем кнопку "Свернуть" в конец стека
         } else {
             /* свернутый стек,
             * отображаем только верхнюю (самую новую) заметку, остальные скрываем */
