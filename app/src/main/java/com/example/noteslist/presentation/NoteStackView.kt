@@ -2,10 +2,10 @@ package com.example.noteslist.presentation
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.view.ViewGroup
-import com.example.noteslist.domain.domainModel.Note
 import androidx.core.view.isGone
+import com.example.noteslist.R
+import com.example.noteslist.domain.domainModel.Note
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -21,6 +21,8 @@ class NoteStackView @JvmOverloads constructor(
     Храним Note всех заметок, а отображаемые задаются через NoteView внутри NoteStackView.
     В реальной реализации это будет приходить из ViewModel, а не храниться внутри View */
     private val notes = mutableListOf<Note>()
+    /* маппер Note -> NoteUi */
+    private val noteMapper = NoteMapper()
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -28,6 +30,111 @@ class NoteStackView @JvmOverloads constructor(
         private const val STACK_SPACING_DP = 20f
         /* максимальное количество видимых заметок в стеке */
         private const val STACK_MAX_SIZE = 3
+    }
+
+    init {
+        initView()
+
+        initAttrs(attrs, defStyleAttr)
+
+        initListener()
+    }
+
+    private fun initListener() {
+        /* при клике на NoteStackView переключаем состояние между развернутым и свернутым */
+        setOnClickListener {
+            if (notes.isNotEmpty() && !isExpanded) {
+                isExpanded = true
+                requestLayout() // перерисовываем View, чтобы отобразить изменения в расположении заметок
+            }
+        }
+    }
+
+    private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int) {
+        attrs?.let {
+            val typedArray = context.obtainStyledAttributes(
+                it,
+                R.styleable.NoteStackView,
+                defStyleAttr,
+                0
+            )
+
+            try {
+                stackSpacingPx = typedArray.getDimensionPixelSize(
+                    R.styleable.NoteStackView_stackSpacing,
+                    STACK_SPACING_DP.dpToPx.toInt()
+                )
+                stackMaxSize = typedArray.getInt(
+                    R.styleable.NoteStackView_stackMaxSize,
+                    STACK_MAX_SIZE
+                ).coerceAtLeast(1) // гарантируем, что максимальный размер стека не меньше 1
+            }
+            finally {
+                /* избегаем утечек памяти */
+                typedArray.recycle()
+            }
+        }
+    }
+
+    private fun initView() {
+        /* добавили кликабельность */
+        isClickable = true
+        isFocusable = true
+
+        /* отключили обрезку дочерних элементов, чтобы заметки могли выходить за пределы NoteStackView при наложении */
+        clipChildren = false
+        clipToPadding = false
+    }
+
+    fun submitNotes(newNotes: List<Note>) {
+        notes.clear()
+        notes += newNotes.sortedByDescending { it.createdAtMillis } // сортируем заметки по времени создания, самые свежие сверху
+        rebuildChildren() // обновляем отображение заметок в стеке
+    }
+
+    private fun rebuildChildren() {
+        /* удаляем все текущие NoteView из NoteStackView */
+        removeAllViews()
+
+        if (notes.isEmpty()) {
+            requestLayout()
+            return
+        }
+
+        if (isExpanded) {
+            /* развернутый стек,
+            * самые свежие сверху, а внизу добавить кнопку "Свернуть"*/
+            notes.forEachIndexed { index, note ->
+                val child = createNoteView(note)
+                child.elevation = (notes.size - index).toFloat()
+                addView(child)
+            }
+            /* TODO: добавить кнопку сворачивания */
+        } else {
+            /* свернутый стек,
+            * отображаем только верхнюю (самую новую) заметку, остальные скрываем */
+            val visibleNotes = notes.take(stackMaxSize)
+            visibleNotes.asReversed().forEachIndexed { index, note ->
+                val child = createNoteView(note)
+                child.elevation = (index + 1).toFloat()
+                addView(child)
+            }
+        }
+        requestLayout()
+    }
+
+    /* вспомогательный метод, создающий NoteView по View */
+    private fun createNoteView(note: Note): NoteView {
+        val noteUi : NoteUi =  noteMapper.mapDomainModelToUi(note) // преобразуем Note в NoteUi
+
+        return NoteView(context).apply {
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            )
+
+            bind(noteUi) // привязываем данные заметки к NoteView: NoteUi -> NoteView
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
