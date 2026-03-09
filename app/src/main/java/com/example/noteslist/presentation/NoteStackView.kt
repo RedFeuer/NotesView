@@ -2,12 +2,13 @@ package com.example.noteslist.presentation
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
+import androidx.core.view.isNotEmpty
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
-import androidx.core.view.isNotEmpty
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -17,6 +18,9 @@ class NoteStackView @JvmOverloads constructor(
     private var stackSpacingVerticallyPx: Int = STACK_SPACING_VERTICALLY_DP.dpToPx
     private var stackSpacingHorizontallyPx: Int = STACK_SPACING_HORIZONTALLY_DP.dpToPx
     private var stackMaxSize: Int = STACK_MAX_SIZE
+    private var collapseTextSizePx = COLLAPSE_TEXT_SIZE_SP.spToPx
+    private var horizontalPaddingPx = HORIZONTAL_PADDING_DP.dpToPx
+    private var verticalPaddingPx = VERTICAL_PADDING_DP.dpToPx
 
     /* флаг, указывающий, развернут ли стек заметок или свернут */
     private var isExpanded: Boolean = false
@@ -28,16 +32,7 @@ class NoteStackView @JvmOverloads constructor(
     private val noteMapper = NoteMapper()
 
     /* кнопка сворачивания заметок в развернутом состоянии */
-    private val collapseView: AppCompatTextView = AppCompatTextView(context).apply {
-        text = "<< Свернуть"
-        textSize = 16f
-        setPadding(12.dpToPx, 8.dpToPx, 12.dpToPx, 8.dpToPx)
-        isClickable = true
-        isFocusable = true
-        setOnClickListener {
-            setExpanded(false)
-        }
-    }
+    private val collapseView = AppCompatTextView(context)
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -47,14 +42,32 @@ class NoteStackView @JvmOverloads constructor(
         private const val STACK_SPACING_HORIZONTALLY_DP = 8
         /* максимальное количество видимых заметок в стеке */
         private const val STACK_MAX_SIZE = 3
+        /* размер шрифта для текста "Свернуть" */
+        private const val COLLAPSE_TEXT_SIZE_SP = 16f
+        /* горизонтальные отступы */
+        private const val HORIZONTAL_PADDING_DP = 16
+         /* вертикальные отступы */
+         private const val VERTICAL_PADDING_DP = 16
     }
 
     init {
         initView()
-
         initAttrs(attrs, defStyleAttr)
-
+        initCollapseView()
         initListener()
+    }
+
+    private fun initCollapseView() {
+        collapseView.apply {
+            text = "<< Свернуть"
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, collapseTextSizePx) // px -> sp
+            setPadding(horizontalPaddingPx, verticalPaddingPx, horizontalPaddingPx, verticalPaddingPx)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                setExpanded(false)
+            }
+        }
     }
 
     private fun initListener() {
@@ -88,6 +101,18 @@ class NoteStackView @JvmOverloads constructor(
                     R.styleable.NoteStackView_stackMaxSize,
                     STACK_MAX_SIZE
                 ).coerceAtLeast(1) // гарантируем, что максимальный размер стека не меньше 1
+                collapseTextSizePx = typedArray.getDimension(
+                    R.styleable.NoteStackView_stackCollapseTextSize,
+                    COLLAPSE_TEXT_SIZE_SP.spToPx
+                )
+                horizontalPaddingPx = typedArray.getDimensionPixelSize(
+                    R.styleable.NoteStackView_stackHorizontalPadding,
+                    HORIZONTAL_PADDING_DP.dpToPx
+                )
+                verticalPaddingPx = typedArray.getDimensionPixelSize(
+                    R.styleable.NoteStackView_stackVerticalPadding,
+                    VERTICAL_PADDING_DP.dpToPx
+                )
             }
             finally {
                 /* избегаем утечек памяти */
