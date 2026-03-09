@@ -19,7 +19,12 @@ class ImportantNoteViewHolder(
     companion object {
         /* фабричный метод для создания экземпляра ViewHolder, который будет использоваться в адаптере */
         fun create (parent: ViewGroup) : ImportantNoteViewHolder {
-            val noteView = NoteView(parent.context)
+            val noteView = NoteView(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
             return ImportantNoteViewHolder(noteView)
         }
     }
