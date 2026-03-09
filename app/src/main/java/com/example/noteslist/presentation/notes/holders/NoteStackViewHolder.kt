@@ -11,4 +11,12 @@ class NoteStackViewHolder(
     fun bind(notes: List<Note>) {
         noteStackView.submitNotes(notes)
     }
+
+    companion object {
+        /* фабричный метод для создания экземпляра ViewHolder, который будет использоваться в адаптере */
+        fun create (parent: android.view.ViewGroup) : NoteStackViewHolder {
+            val noteStackView = NoteStackView(parent.context)
+            return NoteStackViewHolder(noteStackView)
+        }
+    }
 }
