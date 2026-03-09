@@ -7,7 +7,7 @@ sealed interface NoteListItem {
     /* идентификатор */
     val id: String
     /* заголовок для группы заметок с одинаковой датой создания */
-    data class DataHeader(
+    data class DateHeader(
         val date: NoteDate,
     ) : NoteListItem {
         override val id: String = "header_${date.toStableString()}"
