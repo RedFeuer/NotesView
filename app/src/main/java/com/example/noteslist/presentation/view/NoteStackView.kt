@@ -131,6 +131,7 @@ class NoteStackView @JvmOverloads constructor(
         clipToPadding = false
     }
 
+    /* метод для передачи новых заметок в NoteStackView и обновления отображения */
     fun submitNotes(newNotes: List<Note>) {
         notes.clear()
         notes += newNotes.sortedByDescending { it.createdAtMillis } // сортируем заметки по времени создания, самые свежие сверху
