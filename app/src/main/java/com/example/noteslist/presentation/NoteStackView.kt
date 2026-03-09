@@ -7,6 +7,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
+import androidx.core.view.isNotEmpty
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -209,7 +210,7 @@ class NoteStackView @JvmOverloads constructor(
         }
 
         if (!isExpanded) {
-            if (childCount > 0) {
+            if (this.isNotEmpty()) {
                 /* свернутый стек,
                 высота стека - это высота верхней заметки + отступы */
                 val frontChildHeight = getChildAt(childCount - 1).measuredHeight
