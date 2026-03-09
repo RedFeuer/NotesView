@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.noteslist.presentation.NoteStackView
+    <com.example.noteslist.presentation.view.NoteStackView
         android:id="@+id/noteStackView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

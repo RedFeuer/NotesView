@@ -1,4 +1,4 @@
-package com.example.noteslist.presentation
+package com.example.noteslist.presentation.view
 
 import android.os.Bundle
 import android.view.View
