@@ -14,6 +14,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:stackMaxSize="@integer/stack_max_size"
         app:stackSpacingVertically="@dimen/stack_spacing_vertically"
-        app:stackSpacingHorizontally="@dimen/stack_spacing_horizontally"/>
+        app:stackSpacingHorizontally="@dimen/stack_spacing_horizontally"
+        app:stackCollapseTextSize="@dimen/stack_collapse_text_size"
+        app:stackHorizontalPadding="@dimen/stack_horizontal_padding"
+        app:stackVerticalPadding="@dimen/stack_vertical_padding"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

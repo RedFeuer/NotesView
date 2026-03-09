@@ -5,6 +5,9 @@
         <attr name="stackMaxSize" format="integer"/>
         <attr name="stackSpacingVertically" format="dimension"/>
         <attr name="stackSpacingHorizontally" format="dimension"/>
+        <attr name="stackCollapseTextSize" format="dimension"/>
+        <attr name="stackHorizontalPadding" format="dimension"/>
+        <attr name="stackVerticalPadding" format="dimension"/>
     </declare-styleable>
 
     <declare-styleable name="NoteView">

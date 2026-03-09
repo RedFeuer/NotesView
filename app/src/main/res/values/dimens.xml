@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Размеры для NoteView -->
     <dimen name = "note_view_width">200dp</dimen>
     <dimen name = "note_view_height">200dp</dimen>
     <dimen name="note_view_corner_radius">16dp</dimen>
@@ -8,6 +9,10 @@
     <dimen name="note_view_description_text_size">18sp</dimen>
     <dimen name="note_view_created_at_text_size">14sp</dimen>
 
+    <!-- Размеры для NoteStackView -->
     <dimen name="stack_spacing_vertically">20dp</dimen>
     <dimen name="stack_spacing_horizontally">8dp</dimen>
+    <dimen name="stack_collapse_text_size">16sp</dimen>
+    <dimen name="stack_horizontal_padding">12dp</dimen>
+    <dimen name="stack_vertical_padding">8dp</dimen>
 </resources>
