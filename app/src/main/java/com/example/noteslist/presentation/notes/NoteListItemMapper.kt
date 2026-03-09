@@ -20,7 +20,7 @@ fun List<Note>.toNoteListItems(): List<NoteListItem> {
             .sortedDescending()
             .forEach { date ->
                 /* добавляем заголовок для группы заметок с одинаковой датой создания */
-                add(NoteListItem.DataHeader(date))
+                add(NoteListItem.DateHeader(date))
 
                 /* все заметки с одинаковой датой создания */
                 val notesOfDay = notesGroupedByDate.getValue(date)
