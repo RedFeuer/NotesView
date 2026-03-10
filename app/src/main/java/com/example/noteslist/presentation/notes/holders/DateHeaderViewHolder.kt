@@ -14,6 +14,7 @@ class DateHeaderViewHolder(
     /* TODO: переделать на ViewBinding */
     private val tvDateHeader: TextView = itemView.findViewById(R.id.textViewDateHeader)
 
+    /* биндим элемент к ViewHolder */
     fun bind(item: NoteListItem.DateHeader) {
         tvDateHeader.text = item.date.toDisplayString()
     }

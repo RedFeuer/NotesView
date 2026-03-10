@@ -7,10 +7,11 @@ import com.example.noteslist.presentation.view.NoteMapper
 import com.example.noteslist.presentation.view.NoteView
 
 class ImportantNoteViewHolder(
-    private val noteView: NoteView
+    private val noteView: NoteView,
+    private val noteMapper: NoteMapper = NoteMapper()
 ) : RecyclerView.ViewHolder(noteView) {
-    private val noteMapper = NoteMapper()
 
+    /* биндим элемент к ViewHolder */
     fun bind(note: Note) {
         val noteUi = noteMapper.mapDomainModelToUi(note)
         noteView.bind(noteUi)

@@ -9,6 +9,7 @@ class NoteStackViewHolder(
     private val noteStackView: NoteStackView,
 ) : RecyclerView.ViewHolder(noteStackView) {
 
+    /* биндим элемент к ViewHolder */
     fun bind(notes: List<Note>) {
         noteStackView.submitNotes(notes)
     }
