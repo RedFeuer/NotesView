@@ -26,7 +26,7 @@ abstract class MultiTypeAdapter(
     /* по известному viewType создаем нужный ViewHolder */
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int,
+        viewType: Int, // это индекс делегата, который мы вернули в getItemViewType
     ): RecyclerView.ViewHolder {
         return delegates[viewType].onCreateViewHolder(parent)
     }
