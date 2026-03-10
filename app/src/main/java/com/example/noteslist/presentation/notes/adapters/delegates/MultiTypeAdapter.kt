@@ -10,6 +10,7 @@ abstract class MultiTypeAdapter(
     diffUtilCallback: DiffUtil.ItemCallback<NoteListItem>,
     private val delegates: List<AdapterDelegate>,
 ) : ListAdapter<NoteListItem, RecyclerView.ViewHolder>(diffUtilCallback) {
+    /* находим индекс делегата, который подходит для текущего элемента списка */
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
 
