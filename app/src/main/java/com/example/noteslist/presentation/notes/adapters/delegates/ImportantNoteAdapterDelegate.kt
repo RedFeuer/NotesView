@@ -1,5 +1,6 @@
 package com.example.noteslist.presentation.notes.adapters.delegates
 
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.presentation.notes.NoteListItem
 import com.example.noteslist.presentation.notes.holders.ImportantNoteViewHolder
@@ -9,7 +10,7 @@ class ImportantNoteAdapterDelegate : AdapterDelegate {
         return item is NoteListItem.ImportantNoteItem
     }
 
-    override fun onCreateViewHolder(parent: android.view.ViewGroup): androidx.recyclerview.widget.RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         return ImportantNoteViewHolder.create(parent)
     }
 
