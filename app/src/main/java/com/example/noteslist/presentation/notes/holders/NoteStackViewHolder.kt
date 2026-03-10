@@ -15,7 +15,7 @@ class NoteStackViewHolder(
 
     companion object {
         /* фабричный метод для создания экземпляра ViewHolder, который будет использоваться в адаптере */
-        fun create (parent: android.view.ViewGroup) : NoteStackViewHolder {
+        fun create (parent: ViewGroup) : NoteStackViewHolder {
             val noteStackView = NoteStackView(parent.context).apply {
                 layoutParams = RecyclerView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
