@@ -232,28 +232,22 @@ class NoteView @JvmOverloads constructor(
         val text = description?.takeIf { it.isNotBlank() } ?: run {
             descriptionLayout = null
             descriptionOverflow = false
+            descriptionTextMaxHeightPx = 0
             return
         }
 
         val w = descriptionTextWidthPx
         if (w <= 0) return // если ширина не задана, не строим layout
 
-        /* выставляем флаг, что строк больше MAX_DESCRIPTION_LINES */
-        val full = buildStaticLayout(
+        /* текстовая разметка, ограниченная MAX_DESCRIPTION_LINES строками*/
+        descriptionLayout = buildStaticLayout(
             text = text,
             maxLines = Int.MAX_VALUE,
             paint = descriptionTextPaint,
             widthPx = w,
-        )
-        descriptionOverflow = full.lineCount > MAX_DESCRIPTION_LINES
-
-        /* текстовая разметка, ограниченная MAX_DESCRIPTION_LINES строками*/
-        descriptionLayout = buildStaticLayout(
-            text = text,
-            maxLines = MAX_DESCRIPTION_LINES,
-            paint = descriptionTextPaint,
-            widthPx = w,
         ).also { layout ->
+            descriptionOverflow = layout.lineCount > MAX_DESCRIPTION_LINES
+
             val lastLineIndex = min(layout.lineCount, MAX_DESCRIPTION_LINES) - 1
             descriptionTextMaxHeightPx = if (lastLineIndex >= 0) layout.getLineBottom(lastLineIndex) else 0
         }
