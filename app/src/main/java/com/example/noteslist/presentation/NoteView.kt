@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -53,10 +54,14 @@ class NoteView @JvmOverloads constructor(
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
     private val viewedIconSizePx = dp(VIEWED_ICON_SIZE_DP).toInt()
     private val viewedIconMarginPx = dp(VIEWED_ICON_MARGIN_DP).toInt()
+    /* размеры иконки просмотренной задачи */
+    private val viewedIconBounds = Rect()
     /* иконка-звездочка для важной заметки */
     private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
     private val importantIconSizePx = dp(IMPORTANT_ICON_SIZE_DP).toInt()
     private val importantIconMarginPx = dp(IMPORTANT_ICON_MARGIN_DP).toInt()
+    /* размеры иконки для важной заметки */
+    private val importantIconBounds = Rect()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -267,9 +272,29 @@ class NoteView @JvmOverloads constructor(
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
 
+        updateViewedIconSize()
+        updateImportantIconSize()
+
         /* считаем ширину description (отнимаем два отступа - слева и справа) */
         val innerPaddingX = innerTextPaddingPx
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
+    }
+
+    /* подсчет размеров иконки */
+    private fun updateViewedIconSize() {
+        val right = (cardRect.right - viewedIconMarginPx).toInt()
+        val left = right - viewedIconSizePx
+        val bottom = (cardRect.bottom - viewedIconMarginPx).toInt()
+        val top = bottom - viewedIconSizePx
+        viewedIconBounds.set(left, top, right, bottom)
+    }
+
+    private fun updateImportantIconSize() {
+        val left = (headerRect.left + importantIconMarginPx).toInt()
+        val right = left + importantIconSizePx
+        val top = (headerRect.top + importantIconMarginPx).toInt()
+        val bottom = top + importantIconSizePx
+        importantIconBounds.set(left, top, right, bottom)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -323,12 +348,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawImportantIcon(canvas: Canvas) {
         val icon = importantIcon ?: return
 
-        val left = (headerRect.left + importantIconMarginPx).toInt()
-        val right = left + importantIconSizePx
-        val top = (headerRect.top + importantIconMarginPx).toInt()
-        val bottom = top + importantIconSizePx
-
-        icon.setBounds(left, top, right, bottom)
+        icon.bounds = importantIconBounds
 
         icon.draw(canvas)
     }
@@ -421,12 +441,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawViewedIcon(canvas: Canvas) {
         val icon = viewedIcon ?: return
 
-        val right = (cardRect.right - viewedIconMarginPx).toInt()
-        val left = right - viewedIconSizePx
-        val bottom = (cardRect.bottom - viewedIconMarginPx).toInt()
-        val top = bottom - viewedIconSizePx
-
-        icon.setBounds(left, top, right, bottom)
+        icon.bounds = viewedIconBounds
 
         icon.draw(canvas)
     }
