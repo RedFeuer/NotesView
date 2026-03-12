@@ -54,6 +54,11 @@ class NoteView @JvmOverloads constructor(
             updateDescriptionLayout() // при изменении текста пересчитываем layout
             invalidate()
         }
+    /* координаты описания */
+    private var descriptionTextStartX = 0f
+    private var descriptionTextStartY = 0f
+    /* область отрисовки текста description */
+    private var descriptionClipRect = RectF()
 
     /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
@@ -308,6 +313,7 @@ class NoteView @JvmOverloads constructor(
                 descriptionFadeBottom = 0f
             }
         }
+        updateDescriptionTextPosition()
         updateDescriptionFadeShader()
     }
 
@@ -365,6 +371,22 @@ class NoteView @JvmOverloads constructor(
         val fontMetrics = titleTextPaint.fontMetrics
         titleTextBaselineY = startY - fontMetrics.ascent // базовая линия для текста
     }
+
+    /* вычисляем позицию текста заметки */
+    private fun updateDescriptionTextPosition() {
+        /* отступы внутри карточки */
+        descriptionTextStartX = cardRect.left + innerTextPaddingPx
+        descriptionTextStartY = headerRect.bottom + innerTextPaddingPx
+
+        /* обрезаем текст по размерам прямоугольника */
+        descriptionClipRect.set(
+            0f,
+            0f,
+            descriptionTextWidthPx.toFloat(),
+            descriptionTextMaxHeightPx.toFloat()
+        )
+    }
+
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -433,19 +455,11 @@ class NoteView @JvmOverloads constructor(
         val layout = descriptionLayout ?: return
         if (descriptionTextMaxHeightPx <= 0 || descriptionTextWidthPx <= 0) return
 
-        val startX = cardRect.left + innerTextPaddingPx
-        val startY = headerRect.bottom + innerTextPaddingPx
-
         canvas.save()
-        canvas.translate(startX, startY)
+        canvas.translate(descriptionTextStartX, descriptionTextStartY)
 
         /* рисуем только первые 2 строки */
-        canvas.clipRect(
-            0f,
-            0f,
-            descriptionTextWidthPx.toFloat(),
-            descriptionTextMaxHeightPx.toFloat()
-        )
+        canvas.clipRect(descriptionClipRect)
         layout.draw(canvas)
 
         /* если текста больше 2 строчек, то фейдим конец 2-й строки */
