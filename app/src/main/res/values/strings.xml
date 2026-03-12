@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NotesList</string>
+    <string name="stack_collapse">Свернуть</string>
 </resources>

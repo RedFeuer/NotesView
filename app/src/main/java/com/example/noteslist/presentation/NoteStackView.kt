@@ -60,7 +60,7 @@ class NoteStackView @JvmOverloads constructor(
 
     private fun initCollapseView() {
         collapseView.apply {
-            text = "<< Свернуть"
+            text = resources.getString(R.string.stack_collapse) // устанавливаем текст "Свернуть" из ресурсов
             setTextSize(TypedValue.COMPLEX_UNIT_PX, collapseTextSizePx) // px -> sp
             setPadding(horizontalPaddingPx, verticalPaddingPx, horizontalPaddingPx, verticalPaddingPx)
             isClickable = true
