@@ -3,6 +3,7 @@ package com.example.noteslist.presentation.view
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
@@ -59,7 +60,7 @@ class NoteStackView @JvmOverloads constructor(
 
     private fun initCollapseView() {
         collapseView.apply {
-            text = "<< Свернуть"
+            text = resources.getString(R.string.stack_collapse) // устанавливаем текст "Свернуть" из ресурсов
             setTextSize(TypedValue.COMPLEX_UNIT_PX, collapseTextSizePx) // px -> sp
             setPadding(horizontalPaddingPx, verticalPaddingPx, horizontalPaddingPx, verticalPaddingPx)
             isClickable = true
@@ -195,7 +196,33 @@ class NoteStackView @JvmOverloads constructor(
             чтобы можно было взаимодействовать с ними индивидуально*/
             isClickable = isExpanded
             isFocusable = isExpanded
+
+            if (isExpanded) {
+                setOnClickListener {
+                    markNoteAsViewed(note)
+                }
+            }
+            else {
+                setOnClickListener(null) // отключаем клик для заметок в свернутом состоянии
+            }
         }
+    }
+
+    /* обработка клика по стеку, если он свернут */
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return !isExpanded
+    }
+
+    /* меняем состояние Note, а не NoteView как было до этого */
+    private fun markNoteAsViewed(note: Note) {
+        val index = notes.indexOfFirst { it.uiId == note.uiId }
+        if (index == -1) return // если заметка не найдена, ничего не делаем
+
+        val oldNote = notes[index]
+        if (oldNote.isViewed) return // если заметка уже помечена как просмотр
+
+        notes[index] = oldNote.copy(isViewed = true)
+        rebuildChildren()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -251,9 +278,7 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 totalHeight += child.measuredHeight// добавляем высоту заметки
-                if (i != childCount - 1) {
-                    totalHeight += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
-                }
+                totalHeight = addSpacingAmongNotes(totalHeight, stackSpacingVerticallyPx, i)
             }
         }
 
@@ -283,11 +308,11 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 /* для создания эффекта наложения, каждый последующий элемент смещается вниз на stackSpacingPx относительно предыдущего */
-                val left = paddingLeft + i * stackSpacingHorizontallyPx
-                val top = paddingTop + i * stackSpacingVerticallyPx
-//                val right = left + child.measuredWidth - НЕ НУЖНО
-                val bottom = top + child.measuredHeight
-                child.layout(left, top, right, bottom)
+                val leftNotExpended = paddingLeft + i * stackSpacingHorizontallyPx
+                val topNotExpended = paddingTop + i * stackSpacingVerticallyPx
+                val rightNotExpended = right
+                val bottomNotExpended = topNotExpended + child.measuredHeight
+                child.layout(leftNotExpended, topNotExpended, rightNotExpended, bottomNotExpended)
             }
         }
         else {
@@ -303,12 +328,17 @@ class NoteStackView @JvmOverloads constructor(
                 val bottom = currentTop + child.measuredHeight
                 child.layout(left, currentTop, right, bottom)
 
-                /* обновляем текущую верхнюю позицию для следующей заметки, добавляя высоту текущей заметки и отступ */
-                currentTop = bottom
-                if (i != childCount - 1) {
-                    currentTop += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
-                }
+                currentTop = addSpacingAmongNotes(bottom, stackSpacingVerticallyPx, i)
             }
+        }
+    }
+
+    /* добавляем отступ между развернутыми заметками, кроме последней */
+    private fun addSpacingAmongNotes(height: Int, spacing: Int, index: Int): Int {
+        return if (index != childCount - 1) {
+            height + spacing
+        } else {
+            height
         }
     }
 }

@@ -227,16 +227,6 @@ class NoteView @JvmOverloads constructor(
         return base + importantIconSizePx + importantIconMarginPx
     }
 
-    override fun performClick(): Boolean {
-        super.performClick()
-        /* при клике помечаем заметку как просмотренную и перерисовываем */
-        if (!isViewed) {
-            isViewed = true
-        }
-//        isViewed = !isViewed // для теста - переключение состояния при каждом клике
-        return true
-    }
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         /* предпочитаемые ширина и высота */
         val desiredWidth = defaultWidthPx.toInt() + paddingLeft + paddingRight
