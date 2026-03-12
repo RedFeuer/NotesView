@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -54,10 +55,14 @@ class NoteView @JvmOverloads constructor(
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
     private val viewedIconSizePx = VIEWED_ICON_SIZE_DP.dpToPx
     private val viewedIconMarginPx = VIEWED_ICON_MARGIN_DP.dpToPx
+    /* размеры иконки просмотренной задачи */
+    private val viewedIconBounds = Rect()
     /* иконка-звездочка для важной заметки */
     private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
     private val importantIconSizePx = IMPORTANT_ICON_SIZE_DP.dpToPx
     private val importantIconMarginPx = IMPORTANT_ICON_MARGIN_DP.dpToPx
+    /* размеры иконки для важной заметки */
+    private val importantIconBounds = Rect()
     /* layout для разметки текста, обработки переносов и fade */
     private var descriptionLayout: StaticLayout? = null
     /* флаг, указывающий, что текст описания не помещается и нужно делать fade в конце */
@@ -238,28 +243,22 @@ class NoteView @JvmOverloads constructor(
         val text = description?.takeIf { it.isNotBlank() } ?: run {
             descriptionLayout = null
             descriptionOverflow = false
+            descriptionTextMaxHeightPx = 0
             return
         }
 
         val w = descriptionTextWidthPx
         if (w <= 0) return // если ширина не задана, не строим layout
 
-        /* выставляем флаг, что строк больше MAX_DESCRIPTION_LINES */
-        val full = buildStaticLayout(
+        /* текстовая разметка, ограниченная MAX_DESCRIPTION_LINES строками*/
+        descriptionLayout = buildStaticLayout(
             text = text,
             maxLines = Int.MAX_VALUE,
             paint = descriptionTextPaint,
             widthPx = w,
-        )
-        descriptionOverflow = full.lineCount > MAX_DESCRIPTION_LINES
-
-        /* текстовая разметка, ограниченная MAX_DESCRIPTION_LINES строками*/
-        descriptionLayout = buildStaticLayout(
-            text = text,
-            maxLines = MAX_DESCRIPTION_LINES,
-            paint = descriptionTextPaint,
-            widthPx = w,
         ).also { layout ->
+            descriptionOverflow = layout.lineCount > MAX_DESCRIPTION_LINES
+
             val lastLineIndex = min(layout.lineCount, MAX_DESCRIPTION_LINES) - 1
             descriptionTextMaxHeightPx = if (lastLineIndex >= 0) layout.getLineBottom(lastLineIndex) else 0
         }
@@ -279,9 +278,29 @@ class NoteView @JvmOverloads constructor(
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
 
+        updateViewedIconSize()
+        updateImportantIconSize()
+
         /* считаем ширину description (отнимаем два отступа - слева и справа) */
         val innerPaddingX = innerTextPaddingPx
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
+    }
+
+    /* подсчет размеров иконки */
+    private fun updateViewedIconSize() {
+        val right = (cardRect.right - viewedIconMarginPx).toInt()
+        val left = right - viewedIconSizePx
+        val bottom = (cardRect.bottom - viewedIconMarginPx).toInt()
+        val top = bottom - viewedIconSizePx
+        viewedIconBounds.set(left, top, right, bottom)
+    }
+
+    private fun updateImportantIconSize() {
+        val left = (headerRect.left + importantIconMarginPx).toInt()
+        val right = left + importantIconSizePx
+        val top = (headerRect.top + importantIconMarginPx).toInt()
+        val bottom = top + importantIconSizePx
+        importantIconBounds.set(left, top, right, bottom)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -335,12 +354,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawImportantIcon(canvas: Canvas) {
         val icon = importantIcon ?: return
 
-        val left = (headerRect.left + importantIconMarginPx).toInt()
-        val right = left + importantIconSizePx
-        val top = (headerRect.top + importantIconMarginPx).toInt()
-        val bottom = top + importantIconSizePx
-
-        icon.setBounds(left, top, right, bottom)
+        icon.bounds = importantIconBounds
 
         icon.draw(canvas)
     }
@@ -348,7 +362,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
-        /* левая и правая границы текста */
+        /* отступы внутри header */
         val startX = titleStartX()
         val endX = headerRect.right - innerTextPaddingPx
         /* доступная ширина заголовка */
@@ -448,12 +462,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawViewedIcon(canvas: Canvas) {
         val icon = viewedIcon ?: return
 
-        val right = (cardRect.right - viewedIconMarginPx).toInt()
-        val left = right - viewedIconSizePx
-        val bottom = (cardRect.bottom - viewedIconMarginPx).toInt()
-        val top = bottom - viewedIconSizePx
-
-        icon.setBounds(left, top, right, bottom)
+        icon.bounds = viewedIconBounds
 
         icon.draw(canvas)
     }
