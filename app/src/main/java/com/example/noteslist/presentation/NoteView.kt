@@ -40,6 +40,7 @@ class NoteView @JvmOverloads constructor(
         set(value) {
             field = value
             initStyle()
+            updateSize()
             updateDescriptionLayout()
             invalidate()
         }
@@ -117,6 +118,13 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
         isSubpixelText = true
     }
+    /* параметры для фейда описания, если текста больше 2 строк */
+    private var descriptionFadeLeft = 0f
+    private var descriptionFadeRight = 0f
+    private var descriptionFadeTop = 0f
+    private var descriptionFadeBottom = 0f
+    /* флаг видимости фейда */
+    private var descriptionFadeVisible = false
 
     private val createdAtTextPaint = TextPaint().apply {
         isAntiAlias = true
@@ -232,12 +240,33 @@ class NoteView @JvmOverloads constructor(
         updateDescriptionLayout()
     }
 
+    private fun updateDescriptionFadeShader() {
+        if (!descriptionFadeVisible) {
+            fadePaint.shader = null
+            return
+        }
+
+        /* фон под фейд - цвет карточки в зависимости от того просмотрена она или нет */
+        val bgColor = cardPaint.color
+        val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
+
+        fadePaint.shader = LinearGradient(
+            descriptionFadeLeft, 0f,
+            descriptionFadeRight, 0f,
+            transparentBgColor,
+            bgColor,
+            Shader.TileMode.CLAMP
+        )
+    }
+
     private fun updateDescriptionLayout() {
         /* если описание пустое, не строим layout и сбрасываем флаг overflow */
         val text = description?.takeIf { it.isNotBlank() } ?: run {
             descriptionLayout = null
             descriptionOverflow = false
             descriptionTextMaxHeightPx = 0
+            descriptionFadeVisible = false
+            fadePaint.shader = null
             return
         }
 
@@ -255,7 +284,27 @@ class NoteView @JvmOverloads constructor(
 
             val lastLineIndex = min(layout.lineCount, MAX_DESCRIPTION_LINES) - 1
             descriptionTextMaxHeightPx = if (lastLineIndex >= 0) layout.getLineBottom(lastLineIndex) else 0
+
+            if (descriptionOverflow && lastLineIndex >= 0) {
+                /* если текст не помещается, то показываем фейд */
+                val lineRight = layout.getLineRight(lastLineIndex)
+                    .coerceAtMost(descriptionTextWidthPx.toFloat())
+
+                descriptionFadeVisible = lineRight > 0f
+                descriptionFadeRight = lineRight
+                descriptionFadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
+                descriptionFadeTop = layout.getLineTop(lastLineIndex).toFloat()
+                descriptionFadeBottom = layout.getLineBottom(lastLineIndex).toFloat()
+            }
+            else {
+                descriptionFadeVisible = false
+                descriptionFadeLeft = 0f
+                descriptionFadeRight = 0f
+                descriptionFadeTop = 0f
+                descriptionFadeBottom = 0f
+            }
         }
+        updateDescriptionFadeShader()
     }
 
     /* пересчет размеров заметки (карточка + название) */
@@ -389,35 +438,14 @@ class NoteView @JvmOverloads constructor(
         layout.draw(canvas)
 
         /* если текста больше 2 строчек, то фейдим конец 2-й строки */
-        if (descriptionOverflow && layout.lineCount >= MAX_DESCRIPTION_LINES) {
-            val lineIndex = MAX_DESCRIPTION_LINES - 1 // 2-я строка
-            val top = layout.getLineTop(lineIndex).toFloat()
-            val bottom = layout.getLineBottom(lineIndex).toFloat()
-
-            /* конец текста на 2-й строке */
-            val lineRight = layout.getLineRight(lineIndex).coerceAtMost(descriptionTextWidthPx.toFloat())
-
-            if (lineRight > 0) { // если строка пустая - нечего фейдить
-                /* границы фейда:
-                * справа - конец текса, слева - отступ для фейда */
-                val fadeRight = lineRight
-                val fadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
-
-                /* фон под фейд - цвет карточки в зависимости от того просмотрена она или нет */
-                val bgColor = cardPaint.color
-                val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
-
-                fadePaint.shader = LinearGradient(
-                    fadeLeft, 0f,
-                    fadeRight, 0f,
-                    transparentBgColor,
-                    bgColor,
-                    Shader.TileMode.CLAMP
-                )
-
-                canvas.drawRect(fadeLeft, top, fadeRight, bottom, fadePaint)
-                fadePaint.shader = null
-            }
+        if (descriptionFadeVisible) {
+            canvas.drawRect(
+                descriptionFadeLeft,
+                descriptionFadeTop,
+                descriptionFadeRight,
+                descriptionFadeBottom,
+                fadePaint
+            )
         }
 
         canvas.restore()
