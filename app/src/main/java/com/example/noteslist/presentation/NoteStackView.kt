@@ -3,6 +3,7 @@ package com.example.noteslist.presentation
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isGone
@@ -194,7 +195,33 @@ class NoteStackView @JvmOverloads constructor(
             чтобы можно было взаимодействовать с ними индивидуально*/
             isClickable = isExpanded
             isFocusable = isExpanded
+
+            if (isExpanded) {
+                setOnClickListener {
+                    markNoteAsViewed(note)
+                }
+            }
+            else {
+                setOnClickListener(null) // отключаем клик для заметок в свернутом состоянии
+            }
         }
+    }
+
+    /* обработка клика по стеку, если он свернут */
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return !isExpanded
+    }
+
+    /* меняем состояние Note, а не NoteView как было до этого */
+    private fun markNoteAsViewed(note: Note) {
+        val index = notes.indexOfFirst { it.uiId == note.uiId }
+        if (index == -1) return // если заметка не найдена, ничего не делаем
+
+        val oldNote = notes[index]
+        if (oldNote.isViewed) return // если заметка уже помечена как просмотр
+
+        notes[index] = oldNote.copy(isViewed = true)
+        rebuildChildren()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
