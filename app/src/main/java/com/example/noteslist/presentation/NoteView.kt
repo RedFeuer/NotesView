@@ -32,24 +32,36 @@ class NoteView @JvmOverloads constructor(
             field = value // backing field
             invalidate()
         }
+    /* координаты Title */
+    private var titleTextStartX = 0f
+    private var titleTextBaselineY = 0f
     var isImportant: Boolean = false
         set(value) {
             field = value
+            updateTitleTextPosition()
             invalidate()
         }
     var isViewed: Boolean = false
         set(value) {
             field = value
             initStyle()
-            updateDescriptionLayout()
+            updateSize()
+            updateDescriptionFadeShader()
             invalidate()
         }
     var description: String? = null
         set(value) {
             field = value
             updateDescriptionLayout() // при изменении текста пересчитываем layout
+            updateDescriptionTextPosition()
+            updateDescriptionFadeShader()
             invalidate()
         }
+    /* координаты описания */
+    private var descriptionTextStartX = 0f
+    private var descriptionTextStartY = 0f
+    /* область отрисовки текста description */
+    private var descriptionClipRect = RectF()
 
     /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
@@ -77,6 +89,9 @@ class NoteView @JvmOverloads constructor(
             field = value
             invalidate()
         }
+    /* координаты createdAt */
+    private var createdAtTextStartX = 0f
+    private var createdAtTextBaselineY = 0f
 
     private fun buildStaticLayout(
         text: String,
@@ -118,6 +133,13 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
         isSubpixelText = true
     }
+    /* параметры для фейда описания, если текста больше 2 строк */
+    private var descriptionFadeLeft = 0f
+    private var descriptionFadeRight = 0f
+    private var descriptionFadeTop = 0f
+    private var descriptionFadeBottom = 0f
+    /* флаг видимости фейда */
+    private var descriptionFadeVisible = false
 
     private val createdAtTextPaint = TextPaint().apply {
         isAntiAlias = true
@@ -236,6 +258,28 @@ class NoteView @JvmOverloads constructor(
         updateSize(w, h) // пересчитываем размеры только при их изменении
         /* обновляем description текст */
         updateDescriptionLayout()
+
+        updateDescriptionTextPosition()
+        updateDescriptionFadeShader()
+    }
+
+    private fun updateDescriptionFadeShader() {
+        if (!descriptionFadeVisible) {
+            fadePaint.shader = null
+            return
+        }
+
+        /* фон под фейд - цвет карточки в зависимости от того просмотрена она или нет */
+        val bgColor = cardPaint.color
+        val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
+
+        fadePaint.shader = LinearGradient(
+            descriptionFadeLeft, 0f,
+            descriptionFadeRight, 0f,
+            transparentBgColor,
+            bgColor,
+            Shader.TileMode.CLAMP
+        )
     }
 
     private fun updateDescriptionLayout() {
@@ -244,6 +288,8 @@ class NoteView @JvmOverloads constructor(
             descriptionLayout = null
             descriptionOverflow = false
             descriptionTextMaxHeightPx = 0
+            descriptionFadeVisible = false
+            fadePaint.shader = null
             return
         }
 
@@ -261,6 +307,25 @@ class NoteView @JvmOverloads constructor(
 
             val lastLineIndex = min(layout.lineCount, MAX_DESCRIPTION_LINES) - 1
             descriptionTextMaxHeightPx = if (lastLineIndex >= 0) layout.getLineBottom(lastLineIndex) else 0
+
+            if (descriptionOverflow && lastLineIndex >= 0) {
+                /* если текст не помещается, то показываем фейд */
+                val lineRight = layout.getLineRight(lastLineIndex)
+                    .coerceAtMost(descriptionTextWidthPx.toFloat())
+
+                descriptionFadeVisible = lineRight > 0f
+                descriptionFadeRight = lineRight
+                descriptionFadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
+                descriptionFadeTop = layout.getLineTop(lastLineIndex).toFloat()
+                descriptionFadeBottom = layout.getLineBottom(lastLineIndex).toFloat()
+            }
+            else {
+                descriptionFadeVisible = false
+                descriptionFadeLeft = 0f
+                descriptionFadeRight = 0f
+                descriptionFadeTop = 0f
+                descriptionFadeBottom = 0f
+            }
         }
     }
 
@@ -273,11 +338,17 @@ class NoteView @JvmOverloads constructor(
         val right = w.toFloat() - paddingRight.toFloat() - shadowPaddingPx
         val bottom = h.toFloat() - paddingBottom.toFloat() - shadowPaddingPx
 
+        /* карточка и хедер */
         cardRect.set(left, top, right, bottom)
 
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
 
+        /* текст */
+        updateTitleTextPosition()
+        updateCreatedAtTextPosition()
+
+        /* иконки */
         updateViewedIconSize()
         updateImportantIconSize()
 
@@ -286,7 +357,7 @@ class NoteView @JvmOverloads constructor(
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
     }
 
-    /* подсчет размеров иконки */
+    /* подсчет размеров иконки "просмотрено" */
     private fun updateViewedIconSize() {
         val right = (cardRect.right - viewedIconMarginPx).toInt()
         val left = right - viewedIconSizePx
@@ -295,6 +366,7 @@ class NoteView @JvmOverloads constructor(
         viewedIconBounds.set(left, top, right, bottom)
     }
 
+    /* подсчет размеров иконки "важное" */
     private fun updateImportantIconSize() {
         val left = (headerRect.left + importantIconMarginPx).toInt()
         val right = left + importantIconSizePx
@@ -302,6 +374,42 @@ class NoteView @JvmOverloads constructor(
         val bottom = top + importantIconSizePx
         importantIconBounds.set(left, top, right, bottom)
     }
+
+    /* вычисляем позицию текста заголовка заметки */
+    private fun updateTitleTextPosition() {
+        /* отступы внутри header */
+        titleTextStartX = titleStartX()
+
+        val startY = headerRect.top + innerTextPaddingPx
+        val fontMetrics = titleTextPaint.fontMetrics
+        titleTextBaselineY = startY - fontMetrics.ascent // базовая линия для текста
+    }
+
+    /* вычисляем позицию текста заметки */
+    private fun updateDescriptionTextPosition() {
+        /* отступы внутри карточки */
+        descriptionTextStartX = cardRect.left + innerTextPaddingPx
+        descriptionTextStartY = headerRect.bottom + innerTextPaddingPx
+
+        /* обрезаем текст по размерам прямоугольника */
+        descriptionClipRect.set(
+            0f,
+            0f,
+            descriptionTextWidthPx.toFloat(),
+            descriptionTextMaxHeightPx.toFloat()
+        )
+    }
+
+    /* вычисляем позицию текста времени создания заметки */
+    private fun updateCreatedAtTextPosition() {
+        /* отступы внутри карточки */
+        createdAtTextStartX = cardRect.left + innerTextPaddingPx
+
+        val startY = cardRect.bottom - innerTextPaddingPx
+        val fontMetrics = createdAtTextPaint.fontMetrics
+        createdAtTextBaselineY = startY - fontMetrics.descent // базовая линия для текста
+    }
+
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -362,31 +470,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
-        /* отступы внутри header */
-        val startX = titleStartX()
-        val endX = headerRect.right - innerTextPaddingPx
-        /* доступная ширина заголовка */
-        val availableWidth = (endX - startX).coerceAtLeast(0f)
-
-        if (availableWidth <= 0) return // если нет места для текста, не рисуем
-
-        /* вертикальная позиция текста - отступ от верхней границы заголовка */
-        val startY = headerRect.top + innerTextPaddingPx
-
-        val fontMetrics = titleTextPaint.fontMetrics
-        /* базовая линия для текста - отступ от верхней границы до базовой линии */
-        val baseline = startY - fontMetrics.ascent
-
-        val paint = titleTextPaint
-
-        val ellipsizedTitle = TextUtils.ellipsize(
-            text,
-            paint,
-            availableWidth,
-            TextUtils.TruncateAt.END
-        ).toString()
-
-        canvas.drawText(ellipsizedTitle, startX, baseline, paint)
+        canvas.drawText(text, titleTextStartX, titleTextBaselineY, titleTextPaint)
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
@@ -394,51 +478,22 @@ class NoteView @JvmOverloads constructor(
         val layout = descriptionLayout ?: return
         if (descriptionTextMaxHeightPx <= 0 || descriptionTextWidthPx <= 0) return
 
-        val startX = cardRect.left + innerTextPaddingPx
-        val startY = headerRect.bottom + innerTextPaddingPx
-
         canvas.save()
-        canvas.translate(startX, startY)
+        canvas.translate(descriptionTextStartX, descriptionTextStartY)
 
         /* рисуем только первые 2 строки */
-        canvas.clipRect(
-            0f,
-            0f,
-            descriptionTextWidthPx.toFloat(),
-            descriptionTextMaxHeightPx.toFloat()
-        )
+        canvas.clipRect(descriptionClipRect)
         layout.draw(canvas)
 
         /* если текста больше 2 строчек, то фейдим конец 2-й строки */
-        if (descriptionOverflow && layout.lineCount >= MAX_DESCRIPTION_LINES) {
-            val lineIndex = MAX_DESCRIPTION_LINES - 1 // 2-я строка
-            val top = layout.getLineTop(lineIndex).toFloat()
-            val bottom = layout.getLineBottom(lineIndex).toFloat()
-
-            /* конец текста на 2-й строке */
-            val lineRight = layout.getLineRight(lineIndex).coerceAtMost(descriptionTextWidthPx.toFloat())
-
-            if (lineRight > 0) { // если строка пустая - нечего фейдить
-                /* границы фейда:
-                * справа - конец текса, слева - отступ для фейда */
-                val fadeRight = lineRight
-                val fadeLeft = (lineRight - fadeWidthPx).coerceAtLeast(0f)
-
-                /* фон под фейд - цвет карточки в зависимости от того просмотрена она или нет */
-                val bgColor = cardPaint.color
-                val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
-
-                fadePaint.shader = LinearGradient(
-                    fadeLeft, 0f,
-                    fadeRight, 0f,
-                    transparentBgColor,
-                    bgColor,
-                    Shader.TileMode.CLAMP
-                )
-
-                canvas.drawRect(fadeLeft, top, fadeRight, bottom, fadePaint)
-                fadePaint.shader = null
-            }
+        if (descriptionFadeVisible) {
+            canvas.drawRect(
+                descriptionFadeLeft,
+                descriptionFadeTop,
+                descriptionFadeRight,
+                descriptionFadeBottom,
+                fadePaint
+            )
         }
 
         canvas.restore()
@@ -447,16 +502,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawCreatedAt(canvas: Canvas) {
         val text = createdAtText?.takeIf { it.isNotBlank() } ?: return
 
-        /* отступы внутри карточки */
-        val startX = cardRect.left + innerTextPaddingPx
-        val startY = cardRect.bottom - innerTextPaddingPx
-
-        val fontMetrics = createdAtTextPaint.fontMetrics
-        val baseline = startY - fontMetrics.descent // базовая линия для текста
-
-        val paint = createdAtTextPaint
-
-        canvas.drawText(text, startX, baseline, paint)
+        canvas.drawText(text, createdAtTextStartX, createdAtTextBaselineY, createdAtTextPaint)
     }
 
     private fun drawViewedIcon(canvas: Canvas) {
