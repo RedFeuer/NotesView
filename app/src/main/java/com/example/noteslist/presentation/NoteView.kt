@@ -45,13 +45,15 @@ class NoteView @JvmOverloads constructor(
             field = value
             initStyle()
             updateSize()
-            updateDescriptionLayout()
+            updateDescriptionFadeShader()
             invalidate()
         }
     var description: String? = null
         set(value) {
             field = value
             updateDescriptionLayout() // при изменении текста пересчитываем layout
+            updateDescriptionTextPosition()
+            updateDescriptionFadeShader()
             invalidate()
         }
     /* координаты описания */
@@ -86,6 +88,9 @@ class NoteView @JvmOverloads constructor(
             field = value
             invalidate()
         }
+    /* координаты createdAt */
+    private var createdAtTextStartX = 0f
+    private var createdAtTextBaselineY = 0f
 
     private fun buildStaticLayout(
         text: String,
@@ -247,6 +252,9 @@ class NoteView @JvmOverloads constructor(
         updateSize(w, h) // пересчитываем размеры только при их изменении
         /* обновляем description текст */
         updateDescriptionLayout()
+
+        updateDescriptionTextPosition()
+        updateDescriptionFadeShader()
     }
 
     private fun updateDescriptionFadeShader() {
@@ -313,8 +321,6 @@ class NoteView @JvmOverloads constructor(
                 descriptionFadeBottom = 0f
             }
         }
-        updateDescriptionTextPosition()
-        updateDescriptionFadeShader()
     }
 
     /* пересчет размеров заметки (карточка + название) */
@@ -334,6 +340,7 @@ class NoteView @JvmOverloads constructor(
 
         /* текст */
         updateTitleTextPosition()
+        updateCreatedAtTextPosition()
 
         /* иконки */
         updateViewedIconSize()
@@ -385,6 +392,16 @@ class NoteView @JvmOverloads constructor(
             descriptionTextWidthPx.toFloat(),
             descriptionTextMaxHeightPx.toFloat()
         )
+    }
+
+    /* вычисляем позицию текста времени создания заметки */
+    private fun updateCreatedAtTextPosition() {
+        /* отступы внутри карточки */
+        createdAtTextStartX = cardRect.left + innerTextPaddingPx
+
+        val startY = cardRect.bottom - innerTextPaddingPx
+        val fontMetrics = createdAtTextPaint.fontMetrics
+        createdAtTextBaselineY = startY - fontMetrics.descent // базовая линия для текста
     }
 
 
@@ -479,16 +496,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawCreatedAt(canvas: Canvas) {
         val text = createdAtText?.takeIf { it.isNotBlank() } ?: return
 
-        /* отступы внутри карточки */
-        val startX = cardRect.left + innerTextPaddingPx
-        val startY = cardRect.bottom - innerTextPaddingPx
-
-        val fontMetrics = createdAtTextPaint.fontMetrics
-        val baseline = startY - fontMetrics.descent // базовая линия для текста
-
-        val paint = createdAtTextPaint
-
-        canvas.drawText(text, startX, baseline, paint)
+        canvas.drawText(text, createdAtTextStartX, createdAtTextBaselineY, createdAtTextPaint)
     }
 
     private fun drawViewedIcon(canvas: Canvas) {
