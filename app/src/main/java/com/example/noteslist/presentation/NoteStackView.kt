@@ -307,11 +307,11 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 /* для создания эффекта наложения, каждый последующий элемент смещается вниз на stackSpacingPx относительно предыдущего */
-                val left = paddingLeft + i * stackSpacingHorizontallyPx
-                val top = paddingTop + i * stackSpacingVerticallyPx
-//                val right = left + child.measuredWidth - НЕ НУЖНО
-                val bottom = top + child.measuredHeight
-                child.layout(left, top, right, bottom)
+                val leftNotExpended = paddingLeft + i * stackSpacingHorizontallyPx
+                val topNotExpended = paddingTop + i * stackSpacingVerticallyPx
+                val rightNotExpended = right
+                val bottomNotExpended = topNotExpended + child.measuredHeight
+                child.layout(leftNotExpended, topNotExpended, rightNotExpended, bottomNotExpended)
             }
         }
         else {
