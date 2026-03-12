@@ -31,9 +31,13 @@ class NoteView @JvmOverloads constructor(
             field = value // backing field
             invalidate()
         }
+    /* координаты Title */
+    private var titleTextStartX = 0f
+    private var titleTextBaselineY = 0f
     var isImportant: Boolean = false
         set(value) {
             field = value
+            updateTitleTextPosition()
             invalidate()
         }
     var isViewed: Boolean = false
@@ -316,11 +320,16 @@ class NoteView @JvmOverloads constructor(
         val right = w.toFloat() - paddingRight.toFloat() - shadowPaddingPx
         val bottom = h.toFloat() - paddingBottom.toFloat() - shadowPaddingPx
 
+        /* карточка и хедер */
         cardRect.set(left, top, right, bottom)
 
         val headerBottom = min(cardRect.top + headerHeightPx, cardRect.bottom)
         headerRect.set(cardRect.left, cardRect.top, cardRect.right, headerBottom)
 
+        /* текст */
+        updateTitleTextPosition()
+
+        /* иконки */
         updateViewedIconSize()
         updateImportantIconSize()
 
@@ -329,7 +338,7 @@ class NoteView @JvmOverloads constructor(
         descriptionTextWidthPx = (cardRect.width() - 2 * innerPaddingX).toInt()
     }
 
-    /* подсчет размеров иконки */
+    /* подсчет размеров иконки "просмотрено" */
     private fun updateViewedIconSize() {
         val right = (cardRect.right - viewedIconMarginPx).toInt()
         val left = right - viewedIconSizePx
@@ -338,12 +347,23 @@ class NoteView @JvmOverloads constructor(
         viewedIconBounds.set(left, top, right, bottom)
     }
 
+    /* подсчет размеров иконки "важное" */
     private fun updateImportantIconSize() {
         val left = (headerRect.left + importantIconMarginPx).toInt()
         val right = left + importantIconSizePx
         val top = (headerRect.top + importantIconMarginPx).toInt()
         val bottom = top + importantIconSizePx
         importantIconBounds.set(left, top, right, bottom)
+    }
+
+    /* вычисляем позицию текста заголовка заметки */
+    private fun updateTitleTextPosition() {
+        /* отступы внутри header */
+        titleTextStartX = titleStartX()
+
+        val startY = headerRect.top + innerTextPaddingPx
+        val fontMetrics = titleTextPaint.fontMetrics
+        titleTextBaselineY = startY - fontMetrics.ascent // базовая линия для текста
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -405,16 +425,7 @@ class NoteView @JvmOverloads constructor(
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
 
-        /* отступы внутри header */
-        val startX = titleStartX()
-        val startY = headerRect.top + innerTextPaddingPx
-
-        val fontMetrics = titleTextPaint.fontMetrics
-        val baseline = startY - fontMetrics.ascent // базовая линия для текста
-
-        val paint = titleTextPaint
-
-        canvas.drawText(text, startX, baseline, paint)
+        canvas.drawText(text, titleTextStartX, titleTextBaselineY, titleTextPaint)
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
