@@ -277,9 +277,7 @@ class NoteStackView @JvmOverloads constructor(
                 if (child.isGone) continue
 
                 totalHeight += child.measuredHeight// добавляем высоту заметки
-                if (i != childCount - 1) {
-                    totalHeight += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
-                }
+                totalHeight = addSpacingAmongNotes(totalHeight, stackSpacingVerticallyPx, i)
             }
         }
 
@@ -329,12 +327,17 @@ class NoteStackView @JvmOverloads constructor(
                 val bottom = currentTop + child.measuredHeight
                 child.layout(left, currentTop, right, bottom)
 
-                /* обновляем текущую верхнюю позицию для следующей заметки, добавляя высоту текущей заметки и отступ */
-                currentTop = bottom
-                if (i != childCount - 1) {
-                    currentTop += stackSpacingVerticallyPx // добавляем отступ между заметками, кроме последней
-                }
+                currentTop = addSpacingAmongNotes(bottom, stackSpacingVerticallyPx, i)
             }
+        }
+    }
+
+    /* добавляем отступ между развернутыми заметками, кроме последней */
+    private fun addSpacingAmongNotes(height: Int, spacing: Int, index: Int): Int {
+        return if (index != childCount - 1) {
+            height + spacing
+        } else {
+            height
         }
     }
 }
