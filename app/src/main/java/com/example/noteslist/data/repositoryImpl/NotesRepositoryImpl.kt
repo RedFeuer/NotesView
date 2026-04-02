@@ -14,7 +14,7 @@ class NotesRepositoryImpl : NotesRepository {
 //            ),
 //            Note(
 //                title = "Резюме",
-//                isImportant = true,
+////                isImportant = true,
 //                description = "Добавить новый проект с BLE в резюме"
 //            ),
             Note(
