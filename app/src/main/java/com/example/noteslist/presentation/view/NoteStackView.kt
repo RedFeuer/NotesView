@@ -72,7 +72,7 @@ class NoteStackView @JvmOverloads constructor(
     }
 
     private fun initListener() {
-        /* при клике на NoteStackView переключаем состояние между развернутым и свернутым */
+        /* при клике на NoteStackView переключаем состояние между свернутым и развернутым */
         setOnClickListener {
             if (notes.isNotEmpty() && !isExpanded) {
                 setExpanded(true)
