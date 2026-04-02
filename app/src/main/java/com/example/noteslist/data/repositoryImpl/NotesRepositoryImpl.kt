@@ -7,16 +7,16 @@ class NotesRepositoryImpl : NotesRepository {
     /* TODO: потом сделать Flow<Note>, чтобы подписаться в ViewModel и реактивно отображать на экране */
     override fun getNotes() : List<Note> {
         return listOf(
-            Note(
-                title = "Т-Академия",
-                isImportant = true,
-                description = "Выполнить задание 1",
-            ),
-            Note(
-                title = "Резюме",
-                isImportant = true,
-                description = "Добавить новый проект с BLE в резюме"
-            ),
+//            Note(
+//                title = "Т-Академия",
+//                isImportant = true,
+//                description = "Выполнить задание 1",
+//            ),
+//            Note(
+//                title = "Резюме",
+//                isImportant = true,
+//                description = "Добавить новый проект с BLE в резюме"
+//            ),
             Note(
                 title = "НИР",
                 description = "Согласовать задачи на семестр с научным руководителем"
