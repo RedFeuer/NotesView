@@ -17,6 +17,11 @@ import androidx.core.view.isGone
 import androidx.core.view.isNotEmpty
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_DELAY_MS
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_END_SCALE
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_START_SCALE
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.ITEM_START_DELAY_MS
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimation
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -45,6 +50,11 @@ class NoteStackView @JvmOverloads constructor(
     private var isAnimating: Boolean = false
     /** множество Animator'ов с сохранением порядка */
     private var currentAnimatorSet: AnimatorSet? = null
+    /** вспомогательный класс с функциями анимаций */
+    /* TODO: когда добавим Hilt, нужно будет вынести в Module через DI вместе с stackInterpolator */
+    private val viewAnimation by lazy {
+        NoteStackViewAnimation(stackInterpolator)
+    }
     /** cubic-bezier интерполятор */
     private val stackInterpolator by lazy {
         PathInterpolator(0.4f, 0.1f, 0.2f, 1f)
@@ -64,18 +74,6 @@ class NoteStackView @JvmOverloads constructor(
         private const val HORIZONTAL_PADDING_DP = 16
          /* вертикальные отступы */
          private const val VERTICAL_PADDING_DP = 16
-
-        /* константы анимации
-        * TODO: закинуть в ресурсы */
-        private const val BASE_DURATION_MS = 200L
-        private const val STEP_DURATION_MS = 40L
-        private const val MAX_DURATION_MS = 800L
-        private const val ITEM_START_DELAY_MS = 20L
-
-        private const val COLLAPSE_BUTTON_DELAY_MS = 100L
-        private const val COLLAPSE_BUTTON_ANIMATION_MS = 200L
-        private const val COLLAPSE_BUTTON_START_SCALE = 0.7f
-        private const val COLLAPSE_BUTTON_END_SCALE = 1.0f
     }
 
     init {
@@ -109,15 +107,8 @@ class NoteStackView @JvmOverloads constructor(
         }
     }
 
-    /** расчет длительности анимации всех элементов и кнопки
-     * [itemCount] - количество элементов в стеке, под которое расчитываем длительность анимации*/
-    private fun calculateMoveDuration(itemCount: Int): Long {
-        return (BASE_DURATION_MS + itemCount * STEP_DURATION_MS) // 200 + n*40
-            .coerceAtMost(MAX_DURATION_MS) // сверху ограничили 800ms
-    }
-
     /** раскрытие с анимацией */
-    private fun expandWithAnimation() {
+    fun expandWithAnimation() {
         /* пустой список или уже раскрыт или анимация уже запущена */
         if (notes.isEmpty() || isExpanded || isAnimating) return
 
@@ -146,7 +137,7 @@ class NoteStackView @JvmOverloads constructor(
         }
 
         val visibleCount = minOf(noteCount, stackMaxSize) // количество видимых в стеке заметок
-        val moveDuration = calculateMoveDuration(noteCount) // время выполнения анимации
+        val moveDuration = viewAnimation.calculateMoveDuration(noteCount) // время выполнения анимации
         val animators = mutableListOf<Animator>()
 
         for (i in 0 until noteCount) {
@@ -203,7 +194,7 @@ class NoteStackView @JvmOverloads constructor(
                     moveDuration +
                     COLLAPSE_BUTTON_DELAY_MS
         /* запуск анимации кнопки Свернуть */
-        animators += buildCollapseButtonAnimator(buttonStartDelay)
+        animators += viewAnimation.buildCollapseButtonAnimator(buttonStartDelay, collapseView)
 
         currentAnimatorSet = AnimatorSet().apply {
             playTogether(animators) // запуск всех анимаций в порядке по startDelay
@@ -231,31 +222,6 @@ class NoteStackView @JvmOverloads constructor(
                 }
             })
             start() // запускаем анимации
-        }
-    }
-
-    /** анимация кнопки Свернуть */
-    private fun buildCollapseButtonAnimator(startDelay: Long): AnimatorSet {
-        val alphaAnimator = ObjectAnimator.ofFloat(collapseView, View.ALPHA, 0f, 1f)
-        val scaleXAnimator = ObjectAnimator.ofFloat(
-            collapseView, // объект, свойство которого меняем
-            View.SCALE_X, // свойство объекта
-            COLLAPSE_BUTTON_START_SCALE, // ОТ
-            COLLAPSE_BUTTON_END_SCALE // ДО
-        )
-        val scaleYAnimator = ObjectAnimator.ofFloat(
-            collapseView, // объект, свойство которого меняем
-            View.SCALE_Y, // свойство объекта
-            COLLAPSE_BUTTON_START_SCALE, // ОТ
-            COLLAPSE_BUTTON_END_SCALE // ДО
-        )
-
-        /* анимация кнопки: aplha от 0 до 1, scaleX/scaleY от 0.7 до 1.0, время анимиации 200мс. */
-        return AnimatorSet().apply {
-            playTogether(alphaAnimator, scaleXAnimator, scaleYAnimator) // комбинируем движение
-            this.startDelay = startDelay // задержка перед стартом для кнопки
-            duration = COLLAPSE_BUTTON_ANIMATION_MS // продолжительность движения
-            interpolator = stackInterpolator // неравномерность анимации
         }
     }
 
