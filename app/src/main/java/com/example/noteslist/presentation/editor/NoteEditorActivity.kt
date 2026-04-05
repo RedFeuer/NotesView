@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
@@ -68,6 +69,7 @@ private fun NoteEditorScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var isImportant by remember { mutableStateOf(false) }
+    var showEmptyTitleError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -85,11 +87,23 @@ private fun NoteEditorScreen(
 
         OutlinedTextField(
             value = title,
-            onValueChange = { title = it },
+            onValueChange = {
+                title = it
+                if (it.isNotBlank()) {
+                    showEmptyTitleError = false
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Заголовок") },
             singleLine = true,
         )
+        if (showEmptyTitleError) {
+            Text(
+                text = "Необходимо заполнить",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -120,6 +134,11 @@ private fun NoteEditorScreen(
 
         Button(
             onClick = {
+                if (title.isBlank()) {
+                    showEmptyTitleError = true
+                    return@Button
+                }
+
                 onAddClick(
                     title.trim(),
                     description.takeIf { it.isNotBlank() },
