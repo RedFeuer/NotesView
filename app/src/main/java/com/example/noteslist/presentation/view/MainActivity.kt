@@ -15,12 +15,14 @@ import com.example.noteslist.presentation.notes.toNoteListItems
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
+    private val repository = NotesRepositoryImpl.instance // Singleton для актуальности заметок
     private val notesAdapter = NotesListAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
         val rootView = findViewById<View>(R.id.main)
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -32,7 +34,15 @@ class MainActivity : AppCompatActivity() {
         recyclerViewNotes.layoutManager = LinearLayoutManager(this)
         recyclerViewNotes.adapter = notesAdapter
 
-        val notes = NotesRepositoryImpl().getNotes()
-        notesAdapter.submitList(notes.toNoteListItems())
+        renderNotes()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        renderNotes()
+    }
+
+    private fun renderNotes() {
+        notesAdapter.submitList(repository.getNotes().toNoteListItems())
     }
 }
