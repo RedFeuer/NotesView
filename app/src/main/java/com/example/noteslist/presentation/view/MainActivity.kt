@@ -44,12 +44,19 @@ class MainActivity : AppCompatActivity() {
 //            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
         }
 
-        /* обработка скрытия Floating Action Button добавления новой заметки при скролле вниз */
+        /* обработка скрытия Floating Action Button добавления новой заметки при скролле
+        * и возвращения кнопки при окончании скролла*/
         recyclerViewNotes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                when {
-                    dy > 0 && fabAddNote.isShown -> fabAddNote.hide()
-                    dy < 0 && !fabAddNote.isShown -> fabAddNote.show()
+                if (dy != 0) {
+                    fabAddNote.hide()
+                }
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    /* post чтобы анимация корректнее отображалась при быстрых скроллах туда-сюда */
+                    fabAddNote.post { fabAddNote.show() }
                 }
             }
         })
