@@ -26,15 +26,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
+import com.example.noteslist.domain.domainModel.Note
 
 class NoteEditorActivity : ComponentActivity() {
+    private val repository = NotesRepositoryImpl.instance // Singleton
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             MaterialTheme {
                 NoteEditorScreen(
-                    onAddClick = { /*TODO : добавить сохранение*/ }
+                    onAddClick = { title, description, isImportant ->
+                        repository.addNote(
+                            Note(
+                                title = title,
+                                description = description,
+                                isImportant = isImportant,
+                            )
+                        )
+                        /* завершаем NoteEditorActivity и делаем onResume() для MainActivity */
+                        finish()
+                    }
                 )
             }
         }
@@ -49,7 +63,7 @@ class NoteEditorActivity : ComponentActivity() {
 
 @Composable
 private fun NoteEditorScreen(
-    onAddClick: () -> Unit,
+    onAddClick: (title : String?, description : String?, isImportant : Boolean) -> Unit,
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -105,7 +119,13 @@ private fun NoteEditorScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = onAddClick,
+            onClick = {
+                onAddClick(
+                    title.trim(),
+                    description.takeIf { it.isNotBlank() },
+                    isImportant
+                )
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Добавить")
