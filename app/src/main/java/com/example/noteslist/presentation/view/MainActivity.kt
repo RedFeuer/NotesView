@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         renderNotes()
     }
 
+    /* при возврате к Activity после другой Activity. Например, после NoteEditorActivity*/
     override fun onResume() {
         super.onResume()
         renderNotes()
