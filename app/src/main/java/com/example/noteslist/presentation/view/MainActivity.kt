@@ -19,7 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
     private val repository = NotesRepositoryImpl.instance // Singleton для актуальности заметок
-    private val notesAdapter = NotesListAdapter()
+    private lateinit var notesAdapter : NotesListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +35,14 @@ class MainActivity : AppCompatActivity() {
 
         val recyclerViewNotes = findViewById<RecyclerView>(R.id.recyclerViewNotes)
         recyclerViewNotes.layoutManager = LinearLayoutManager(this)
+        notesAdapter = NotesListAdapter(
+            onNoteClick = { note ->
+                startActivity(NoteEditorActivity.createEditIntent(this, note.uiId))
+            },
+            onNoteLongClick = { _ ->
+                /* TODO: добавить действие для длинного тапа */
+            }
+        )
         recyclerViewNotes.adapter = notesAdapter
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */

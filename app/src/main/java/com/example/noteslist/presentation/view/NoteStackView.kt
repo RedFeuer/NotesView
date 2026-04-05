@@ -60,6 +60,9 @@ class NoteStackView @JvmOverloads constructor(
         PathInterpolator(0.4f, 0.1f, 0.2f, 1f)
     }
 
+    private var onNoteClick : ((Note) -> Unit)? = null
+    private var onNoteLongClick : ((Note) -> Unit)? = null
+
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
         /* отступ между заметками в стеке */
@@ -339,21 +342,34 @@ class NoteStackView @JvmOverloads constructor(
 
             bind(noteUi) // привязываем данные заметки к NoteView: NoteUi -> NoteView
 
-            /* в свернутом состоянии кликабелен сам стек, а не отдельные заметки
-            в развернутом состоянии кликабельность и фокус у каждой заметки,
-            чтобы можно было взаимодействовать с ними индивидуально*/
+            /* при обычном клике - редактирование заметки
+            * при долгом клике - отмечаем заметку помеченной*/
             isClickable = isExpanded
             isFocusable = isExpanded
 
             if (isExpanded) {
                 setOnClickListener {
-                    markNoteAsViewed(note)
+                    onNoteClick?.invoke(note)
+                }
+
+                setOnLongClickListener {
+                    onNoteLongClick?.invoke(note)
+                    true
                 }
             }
             else {
                 setOnClickListener(null) // отключаем клик для заметок в свернутом состоянии
+                setOnLongClickListener(null)
             }
         }
+    }
+
+    fun setNoteActions(
+        onNoteClick : (Note) -> Unit,
+        onNoteLongClick : (Note) -> Unit,
+    ) {
+        this.onNoteClick = onNoteClick
+        this.onNoteLongClick = onNoteLongClick
     }
 
     /* обработка клика по стеку, если он свернут */
