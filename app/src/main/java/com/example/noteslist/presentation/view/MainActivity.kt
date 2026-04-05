@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         renderNotes()
     }
 
+    /** прикрепление списка заметок к экрану приложения */
     private fun renderNotes() {
         notesAdapter.submitList(repository.getNotes().toNoteListItems())
     }
