@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
+import com.example.noteslist.presentation.editor.NoteEditorActivity
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -39,8 +40,8 @@ class MainActivity : AppCompatActivity() {
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         val fabAddNote = findViewById<FloatingActionButton>(R.id.fabAddNote)
         fabAddNote.setOnClickListener {
-            /* TODO: добавить сюда открытие нового экрана */
-            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
+            startActivity(NoteEditorActivity.createIntent(this))
+//            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
         }
 
         /* обработка скрытия Floating Action Button добавления новой заметки при скролле вниз */
