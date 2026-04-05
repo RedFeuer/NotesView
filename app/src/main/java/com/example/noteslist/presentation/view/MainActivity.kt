@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         val fabAddNote = findViewById<FloatingActionButton>(R.id.fabAddNote)
         fabAddNote.setOnClickListener {
-            startActivity(NoteEditorActivity.createIntent(this))
+            startActivity(NoteEditorActivity.createAddIntent(this))
 //            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
         }
 

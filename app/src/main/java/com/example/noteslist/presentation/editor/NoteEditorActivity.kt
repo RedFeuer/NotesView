@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.presentation.view.NoteMapper
+import java.util.Date
 
 class NoteEditorActivity : ComponentActivity() {
     private val repository = NotesRepositoryImpl.instance // Singleton
@@ -36,18 +39,34 @@ class NoteEditorActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_ADD
+        val noteUiId = intent.getStringExtra(EXTRA_NOTE_UI_ID)
+        val initialNote = noteUiId?.let(repository::getNoteById)
+
         setContent {
             MaterialTheme {
                 NoteEditorScreen(
-                    onAddClick = { title, description, isImportant ->
-                        repository.addNote(
-                            Note(
-                                title = title,
-                                description = description,
-                                isImportant = isImportant,
+                    initialNote = initialNote,
+                    isEditMode = mode == MODE_EDIT,
+                    onSaveClick = { title, description, isImportant, isViewed ->
+                        if (mode == MODE_EDIT && initialNote != null) {
+                            repository.updateNote(
+                                initialNote.copy(
+                                    title = title,
+                                    description = description,
+                                    isImportant = isImportant,
+                                    isViewed = isViewed,
+                                )
                             )
-                        )
-                        /* завершаем NoteEditorActivity и делаем onResume() для MainActivity */
+                        } else {
+                            repository.addNote(
+                                Note(
+                                    title = title,
+                                    description = description,
+                                    isImportant = isImportant,
+                                )
+                            )
+                        }
                         finish()
                     }
                 )
@@ -56,20 +75,54 @@ class NoteEditorActivity : ComponentActivity() {
     }
 
     companion object {
-        fun createIntent(context: Context) : Intent {
-            return Intent(context, NoteEditorActivity::class.java)
+        private const val EXTRA_MODE = "extra_mode"
+        private const val EXTRA_NOTE_UI_ID = "extra_note_ui_id"
+        private const val MODE_ADD = "mode_add"
+        private const val MODE_EDIT = "mode_edit"
+
+        /** открывает экран NoteEditorActivity как создание новой заметки */
+        fun createAddIntent(context: Context) : Intent {
+            return Intent(context, NoteEditorActivity::class.java).apply {
+                putExtra(EXTRA_MODE, MODE_ADD)
+            }
+        }
+        /** открывает экран NoteEditorActivity как редактирование существующей заметки */
+        fun createEditIntent(context: Context, noteUiId : String) : Intent {
+            return Intent(context, NoteEditorActivity::class.java).apply {
+                putExtra(EXTRA_MODE, MODE_EDIT)
+                putExtra(EXTRA_NOTE_UI_ID, noteUiId)
+            }
         }
     }
 }
 
 @Composable
 private fun NoteEditorScreen(
-    onAddClick: (title : String?, description : String?, isImportant : Boolean) -> Unit,
+    initialNote : Note?, // заметка для редактирования
+    isEditMode : Boolean,
+    onSaveClick : (
+        title : String?,
+        description : String?,
+        isImportant : Boolean,
+        isViewed : Boolean,
+    ) -> Unit,
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var isImportant by remember { mutableStateOf(false) }
+    /* если берем в режиме редактирования, то достаем конкретную заметку initialNote из репозитория
+    * если хотим создать новую заметку, то поля пустые */
+    var title by remember { mutableStateOf(initialNote?.title.orEmpty()) }
+    var description by remember { mutableStateOf(initialNote?.description.orEmpty()) }
+    var isImportant by remember { mutableStateOf(initialNote?.isImportant ?: false) }
+    var isViewed by remember { mutableStateOf(initialNote?.isViewed ?: false) }
     var showEmptyTitleError by remember { mutableStateOf(false) }
+
+    val noteMapper = NoteMapper()
+
+    val createdAtText = remember(initialNote?.createdAtMillis) {
+        initialNote?.createdAtMillis?.let {
+//            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(it))
+            noteMapper.createdAtFormatter.format(Date(it))
+        }.orEmpty()
+    }
 
     Column(
         modifier = Modifier
@@ -79,7 +132,7 @@ private fun NoteEditorScreen(
         verticalArrangement = Arrangement.Top,
     ) {
         Text(
-            text = "Новая заметка",
+            text = if (isEditMode) "Редактирование заметки" else "Новая заметка",
             style = MaterialTheme.typography.headlineSmall,
         )
 
@@ -96,6 +149,7 @@ private fun NoteEditorScreen(
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Заголовок") },
             singleLine = true,
+            isError = showEmptyTitleError,
         )
         if (showEmptyTitleError) {
             Text(
@@ -130,6 +184,28 @@ private fun NoteEditorScreen(
             )
         }
 
+        if (isEditMode) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Прочитана")
+                Switch(
+                    checked = isViewed,
+                    onCheckedChange = { isViewed = it }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Создана: $createdAtText",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
@@ -139,15 +215,16 @@ private fun NoteEditorScreen(
                     return@Button
                 }
 
-                onAddClick(
+                onSaveClick(
                     title.trim(),
                     description.takeIf { it.isNotBlank() },
-                    isImportant
+                    isImportant,
+                    isViewed,
                 )
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Добавить")
+            Text(if (isEditMode) "Сохранить" else "Добавить")
         }
     }
 }
