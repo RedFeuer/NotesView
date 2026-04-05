@@ -2,6 +2,7 @@ package com.example.noteslist.presentation.view
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,6 +13,7 @@ import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
@@ -33,6 +35,23 @@ class MainActivity : AppCompatActivity() {
         val recyclerViewNotes = findViewById<RecyclerView>(R.id.recyclerViewNotes)
         recyclerViewNotes.layoutManager = LinearLayoutManager(this)
         recyclerViewNotes.adapter = notesAdapter
+
+        /* обработка нажатия по Floating Action Button добавления новой заметки */
+        val fabAddNote = findViewById<FloatingActionButton>(R.id.fabAddNote)
+        fabAddNote.setOnClickListener {
+            /* TODO: добавить сюда открытие нового экрана */
+            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
+        }
+
+        /* обработка скрытия Floating Action Button добавления новой заметки при скролле вниз */
+        recyclerViewNotes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                when {
+                    dy > 0 && fabAddNote.isShown -> fabAddNote.hide()
+                    dy < 0 && !fabAddNote.isShown -> fabAddNote.show()
+                }
+            }
+        })
 
         renderNotes()
     }
