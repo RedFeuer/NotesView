@@ -39,8 +39,9 @@ class MainActivity : AppCompatActivity() {
             onNoteClick = { note ->
                 startActivity(NoteEditorActivity.createEditIntent(this, note.uiId))
             },
-            onNoteLongClick = { _ ->
-                /* TODO: добавить действие для длинного тапа */
+            onNoteLongClick = { note ->
+                repository.toggleViewed(note.uiId)
+                renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
             }
         )
         recyclerViewNotes.adapter = notesAdapter
