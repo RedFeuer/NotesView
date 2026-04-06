@@ -3,6 +3,7 @@ package com.example.noteslist.presentation.notes.holders
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.presentation.notes.NoteListItem
 import com.example.noteslist.presentation.view.NoteStackView
 
 class NoteStackViewHolder(
@@ -10,8 +11,13 @@ class NoteStackViewHolder(
 ) : RecyclerView.ViewHolder(noteStackView) {
 
     /* биндим элемент к ViewHolder */
-    fun bind(notes: List<Note>) {
-        noteStackView.submitNotes(notes)
+    fun bind(
+        item: NoteListItem.NoteStackItem,
+        isExpanded : Boolean,
+        onExpandedChange : (Boolean) -> Unit,
+    ) {
+        noteStackView.setOnExpandedChange(onExpandedChange)
+        noteStackView.submitNotes(item.notes, isExpanded)
     }
 
     companion object {

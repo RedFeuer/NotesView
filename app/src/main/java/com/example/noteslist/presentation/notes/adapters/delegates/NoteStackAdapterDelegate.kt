@@ -9,6 +9,8 @@ import com.example.noteslist.presentation.notes.holders.NoteStackViewHolder
 class NoteStackAdapterDelegate(
     private val onNoteClick : (Note) -> Unit,
     private val onNoteLongClick : (Note) -> Unit,
+    private val isStackExpanded : (String) -> Boolean,
+    private val onStackExpandedChange : (String, Boolean) -> Unit,
     ): AdapterDelegate {
     override fun isForViewType(item: NoteListItem): Boolean {
         return item is NoteListItem.NoteStackItem
@@ -24,6 +26,12 @@ class NoteStackAdapterDelegate(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: NoteListItem) {
         val noteStackItem = item as NoteListItem.NoteStackItem
-        (holder as NoteStackViewHolder).bind(noteStackItem.notes)
+        (holder as NoteStackViewHolder).bind(
+            item = noteStackItem,
+            isExpanded = isStackExpanded(noteStackItem.id),
+            onExpandedChange = { expanded ->
+                onStackExpandedChange(noteStackItem.id, expanded)
+            }
+        )
     }
 }

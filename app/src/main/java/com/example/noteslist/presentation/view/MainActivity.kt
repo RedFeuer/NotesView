@@ -18,8 +18,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
-    private val repository = NotesRepositoryImpl.instance // Singleton для актуальности заметок
+    /** Singleton репозитория для актуальности заметок */
+    private val repository = NotesRepositoryImpl.instance
     private lateinit var notesAdapter : NotesListAdapter
+    /** множество раскрытых стеков заметок, где идентификатор - id стека*/
+    private var expandedStackIds = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +45,16 @@ class MainActivity : AppCompatActivity() {
             onNoteLongClick = { note ->
                 repository.toggleViewed(note.uiId)
                 renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
+            },
+            isStackExpanded = { stackId ->
+                expandedStackIds.contains(stackId)
+            },
+            onStackExpandedChange = { stackId, isExpanded ->
+                if (isExpanded) {
+                    expandedStackIds.add(stackId) // добавляем в множество заметок
+                } else {
+                    expandedStackIds.remove(stackId) // убираем из множества заметок
+                }
             }
         )
         recyclerViewNotes.adapter = notesAdapter
