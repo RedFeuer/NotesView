@@ -1,7 +1,10 @@
 package com.example.noteslist.domain.domainModel
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.util.UUID
 
+@Parcelize
 data class Note(
     /* TODO: можно как в гуглзаметках добавить что-то типо bullet-листа с задачами
     *   сделать sealed Note и разные сущности:
@@ -24,4 +27,4 @@ data class Note(
     /* время создания
     * в UI это уже String - надо будет подумать над кастом*/
     val createdAtMillis: Long = System.currentTimeMillis(), // по умолчанию - текущее время
-)
+) : Parcelable
