@@ -9,7 +9,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-import com.example.noteslist.presentation.editor.NoteEditorActivity
+//import com.example.noteslist.presentation.editor.NoteEditorActivity
+import androidx.navigation.fragment.findNavController
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -37,8 +38,14 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         fabAddNote = view.findViewById<FloatingActionButton>(R.id.fab_add_note)
 
         notesAdapter = NotesListAdapter(
+            /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
-                startActivity(NoteEditorActivity.createEditIntent(requireContext(), note.uiId))
+                val direction =
+                    NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+                        note = note,
+                        isEditMode = true,
+                    )
+                findNavController().navigate(direction)
             },
             onNoteLongClick = { note ->
                 repository.toggleViewed(note.uiId)
@@ -61,7 +68,12 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         fabAddNote.setOnClickListener {
-            startActivity(NoteEditorActivity.createAddIntent(requireContext()))
+            val direction =
+                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+                    note = null,
+                    isEditMode = false,
+                )
+            findNavController().navigate(direction)
         }
 
         recyclerViewNotes.setOnScrollListener(object : RecyclerView.OnScrollListener() {

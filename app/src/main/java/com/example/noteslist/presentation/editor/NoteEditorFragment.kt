@@ -1,10 +1,7 @@
 package com.example.noteslist.presentation.editor
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.view.View
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,31 +24,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.view.NoteMapper
 import java.util.Date
 
-class NoteEditorActivity : ComponentActivity() {
-    private val repository = NotesRepositoryImpl.instance // Singleton
+class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
+    private val args : NoteEditorFragmentArgs by navArgs()
+    /** Singleton репозитория для актуальности заметок */
+    private val repository = NotesRepositoryImpl.instance
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_ADD
-        val noteUiId = intent.getStringExtra(EXTRA_NOTE_UI_ID)
-        val initialNote = noteUiId?.let(repository::getNoteById)
+        val composeView = view.findViewById<ComposeView>(R.id.compose_note_editor)
+        composeView.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
 
-        setContent {
+        composeView.setContent {
             MaterialTheme {
-                NoteEditorScreen(
-                    initialNote = initialNote,
-                    isEditMode = mode == MODE_EDIT,
+                NoteEditorScreen (
+                    initialNote = args.note,
+                    isEditMode = args.isEditMode,
                     onSaveClick = { title, description, isImportant, isViewed ->
-                        if (mode == MODE_EDIT && initialNote != null) {
+                        if (args.isEditMode && args.note != null) {
                             repository.updateNote(
-                                initialNote.copy(
+                                args.note!!.copy(
                                     title = title,
                                     description = description,
                                     isImportant = isImportant,
@@ -67,30 +73,9 @@ class NoteEditorActivity : ComponentActivity() {
                                 )
                             )
                         }
-                        finish()
+                        findNavController().popBackStack()
                     }
                 )
-            }
-        }
-    }
-
-    companion object {
-        private const val EXTRA_MODE = "extra_mode"
-        private const val EXTRA_NOTE_UI_ID = "extra_note_ui_id"
-        private const val MODE_ADD = "mode_add"
-        private const val MODE_EDIT = "mode_edit"
-
-        /** открывает экран NoteEditorActivity как создание новой заметки */
-        fun createAddIntent(context: Context) : Intent {
-            return Intent(context, NoteEditorActivity::class.java).apply {
-                putExtra(EXTRA_MODE, MODE_ADD)
-            }
-        }
-        /** открывает экран NoteEditorActivity как редактирование существующей заметки */
-        fun createEditIntent(context: Context, noteUiId : String) : Intent {
-            return Intent(context, NoteEditorActivity::class.java).apply {
-                putExtra(EXTRA_MODE, MODE_EDIT)
-                putExtra(EXTRA_NOTE_UI_ID, noteUiId)
             }
         }
     }
@@ -98,10 +83,10 @@ class NoteEditorActivity : ComponentActivity() {
 
 @Composable
 private fun NoteEditorScreen(
-    initialNote : Note?, // заметка для редактирования
+    initialNote : Note?,
     isEditMode : Boolean,
-    onSaveClick : (
-        title : String?,
+    onSaveClick: (
+        title : String,
         description : String?,
         isImportant : Boolean,
         isViewed : Boolean,
