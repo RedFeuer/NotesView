@@ -43,6 +43,10 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
     /** Singleton репозитория для актуальности заметок */
     private val repository = NotesRepositoryImpl.instance
 
+    companion object {
+        private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -75,6 +79,11 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
                                 )
                             )
                         }
+
+                        requireActivity().supportFragmentManager.setFragmentResult(
+                            NOTE_EDITOR_RESULT_KEY,
+                            Bundle.EMPTY,
+                        )
                         findNavController().popBackStack()
                     }
                 )

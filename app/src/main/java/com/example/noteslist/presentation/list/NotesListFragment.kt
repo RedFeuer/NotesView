@@ -29,6 +29,10 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     private lateinit var fabAddNote : FloatingActionButton
     private lateinit var recyclerViewNotes : RecyclerView
 
+    companion object {
+        private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -87,7 +91,12 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             }
         })
 
-        renderNotes()
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            NOTE_EDITOR_RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, _ ->
+            renderNotes()
+        }
     }
 
     /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container */
