@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -109,10 +111,13 @@ private fun NoteEditorScreen(
         }.orEmpty()
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
+            .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.Top,
     ) {
@@ -181,14 +186,14 @@ private fun NoteEditorScreen(
                     checked = isViewed,
                     onCheckedChange = { isViewed = it }
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Создана: $createdAtText",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Создана: $createdAtText",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
