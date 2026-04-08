@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.noteslist.R
@@ -80,15 +81,36 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
                             )
                         }
 
-                        requireActivity().supportFragmentManager.setFragmentResult(
-                            NOTE_EDITOR_RESULT_KEY,
-                            Bundle.EMPTY,
-                        )
-                        findNavController().popBackStack()
+                        closeEditorAfterSave()
                     }
                 )
             }
         }
+    }
+
+    /** закрываем экран редактирования или создания заметки в ландшафтном режиме, либо
+     * уходим с этого экрана назад в портретном режиме */
+    private fun closeEditorAfterSave() {
+        requireActivity().supportFragmentManager.setFragmentResult(
+            NOTE_EDITOR_RESULT_KEY,
+            Bundle.EMPTY
+        )
+
+        if (isTwoPane()) {
+            /* закрываем экран редактирования */
+            parentFragmentManager.commit {
+                remove(this@NoteEditorFragment)
+            }
+        } else {
+            /* уходим на предыдущий экран (список заметок) */
+            findNavController().popBackStack()
+        }
+    }
+
+    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container
+     * по сути проверка, что мы в ландшафтном режиме ориентации*/
+    private fun isTwoPane() : Boolean {
+        return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
     }
 }
 

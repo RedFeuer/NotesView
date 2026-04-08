@@ -99,7 +99,8 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         }
     }
 
-    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container */
+    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container
+     * по сути проверка, что мы в ландшафтном режиме ориентации*/
     private fun isTwoPane() : Boolean {
         return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
     }
