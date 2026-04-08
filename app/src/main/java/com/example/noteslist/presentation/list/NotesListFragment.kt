@@ -1,16 +1,20 @@
 package com.example.noteslist.presentation.list
 
+//import com.example.noteslist.presentation.editor.NoteEditorActivity
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-//import com.example.noteslist.presentation.editor.NoteEditorActivity
-import androidx.navigation.fragment.findNavController
+import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.presentation.editor.NoteEditorFragment
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -40,12 +44,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
-                val direction =
-                    NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
-                        note = note,
-                        isEditMode = true,
-                    )
-                findNavController().navigate(direction)
+                openEditor(note)
             },
             onNoteLongClick = { note ->
                 repository.toggleViewed(note.uiId)
@@ -68,15 +67,10 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         fabAddNote.setOnClickListener {
-            val direction =
-                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
-                    note = null,
-                    isEditMode = false,
-                )
-            findNavController().navigate(direction)
+            openEditor(null)
         }
 
-        recyclerViewNotes.setOnScrollListener(object : RecyclerView.OnScrollListener() {
+        recyclerViewNotes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             /** при любом вертикальном скроле скрываем FAB кнопку */
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy != 0) {
@@ -94,6 +88,35 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         })
 
         renderNotes()
+    }
+
+    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container */
+    private fun isTwoPane() : Boolean {
+        return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
+    }
+
+    private fun openEditor(note : Note?) {
+        if (isTwoPane()) {
+            /* ландшафтный сплит-экран */
+            val args = bundleOf(
+                "note" to note,
+                "isEditMode" to (note != null)
+            )
+
+            requireActivity().supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                /* в контейнер detail_fragment_container кладем NoteEditorFragment  */
+                replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
+            }
+        } else {
+            /* портретный экран */
+            val direction =
+                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+                    note = note,
+                    isEditMode = note != null,
+                )
+            findNavController().navigate(direction)
+        }
     }
 
     /** при возврате на экран заново рендерим, чтобы отображать актуальный UI */
