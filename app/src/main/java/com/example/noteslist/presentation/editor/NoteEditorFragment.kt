@@ -2,6 +2,7 @@ package com.example.noteslist.presentation.editor
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,12 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -127,6 +130,7 @@ private fun NoteEditorScreen(
     ) -> Unit,
     onCloseRequest : () -> Unit,
 ) {
+    var showOnDiscardChangesDialog by remember { mutableStateOf(false) }
     /* если берем в режиме редактирования, то достаем конкретную заметку initialNote из репозитория
     * если хотим создать новую заметку, то поля пустые */
     var title by remember { mutableStateOf(initialNote?.title.orEmpty()) }
@@ -134,6 +138,49 @@ private fun NoteEditorScreen(
     var isImportant by remember { mutableStateOf(initialNote?.isImportant ?: false) }
     var isViewed by remember { mutableStateOf(initialNote?.isViewed ?: false) }
     var showEmptyTitleError by remember { mutableStateOf(false) }
+
+    val initialTitle = remember(initialNote) { initialNote?.title.orEmpty() }
+    val initialDescription = remember(initialNote) { initialNote?.description.orEmpty() }
+    val initialIsImportant = remember(initialNote) { initialNote?.isImportant ?: false }
+    val initialIsViewed = remember(initialNote) { initialNote?.isViewed ?: false }
+
+    val isChanged = (title != initialTitle ||
+            description != initialDescription ||
+            isImportant != initialIsImportant ||
+            isViewed != initialIsViewed)
+
+    BackHandler {
+        if (isChanged) {
+            showOnDiscardChangesDialog = true
+        } else {
+            onCloseRequest()
+        }
+    }
+
+    if (showOnDiscardChangesDialog) {
+        AlertDialog(
+            onDismissRequest = { showOnDiscardChangesDialog = false },
+            title = { Text("Закрыть без сохранения?") },
+            text = { Text("Изменения будут потеряны") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showOnDiscardChangesDialog = false
+                        onCloseRequest()
+                    }
+                ) {
+                    Text("Закрыть")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showOnDiscardChangesDialog = false }
+                ) {
+                    Text("Остаться")
+                }
+            }
+        )
+    }
 
     val noteMapper = NoteMapper()
 
