@@ -80,9 +80,9 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
                                 )
                             )
                         }
-
-                        closeEditorAfterSave()
-                    }
+                        closeEditor()
+                    },
+                    onCloseRequest = { closeEditor() }
                 )
             }
         }
@@ -90,7 +90,8 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
 
     /** закрываем экран редактирования или создания заметки в ландшафтном режиме, либо
      * уходим с этого экрана назад в портретном режиме */
-    private fun closeEditorAfterSave() {
+    private fun closeEditor() {
+        /* обновляем UI */
         requireActivity().supportFragmentManager.setFragmentResult(
             NOTE_EDITOR_RESULT_KEY,
             Bundle.EMPTY
@@ -124,6 +125,7 @@ private fun NoteEditorScreen(
         isImportant : Boolean,
         isViewed : Boolean,
     ) -> Unit,
+    onCloseRequest : () -> Unit,
 ) {
     /* если берем в режиме редактирования, то достаем конкретную заметку initialNote из репозитория
     * если хотим создать новую заметку, то поля пустые */
