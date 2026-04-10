@@ -146,11 +146,15 @@ class NoteStackView @JvmOverloads constructor(
             /* индекс карточки внутри видимого стека
             * то есть первые три карточки стартуют со своих видимых слоев, а
             * все остальные карточки стартуют из позиции последнего видимого элемента */
-            val stackIndex = minOf(i, visibleCount - 1)
+            val collapsedLayerIndex = if (i < visibleCount) {
+                visibleCount - 1 - i
+            } else {
+                0
+            }
 
             /* стартовая позиция текущей карточки в стопке */
-            val startLeft = paddingLeft + stackIndex * stackSpacingHorizontallyPx
-            val startTop = paddingTop + stackIndex * stackSpacingVerticallyPx
+            val startLeft = paddingLeft + collapsedLayerIndex * stackSpacingHorizontallyPx
+            val startTop = paddingTop + collapsedLayerIndex * stackSpacingVerticallyPx
             /* конечная позиция карточки в развернутом списке */
             val endLeft = child.left
             val endTop = child.top
@@ -415,7 +419,7 @@ class NoteStackView @JvmOverloads constructor(
                 /* свернутый стек,
                 высота стека - это высота верхней заметки + отступы */
                 val frontChildHeight = getChildAt(childCount - 1).measuredHeight
-                totalHeight += frontChildHeight + stackSpacingVerticallyPx * (stackMaxSize - 1) // добавляем отступы для остальных заметок в стеке
+                totalHeight += frontChildHeight + stackSpacingVerticallyPx * (childCount - 1) // добавляем отступы для остальных заметок в стеке
             }
         }
         else {
