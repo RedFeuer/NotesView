@@ -88,14 +88,19 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
         }
     }
 
-    /** закрываем экран редактирования или создания заметки в ландшафтном режиме, либо
-     * уходим с этого экрана назад в портретном режиме */
+    /** сохраняем заметку и закрываем экран редактирования */
     private fun closeEditorAfterSave() {
         requireActivity().supportFragmentManager.setFragmentResult(
             NOTE_EDITOR_RESULT_KEY,
             Bundle.EMPTY
         )
 
+        closeEditor()
+    }
+
+    /** закрываем экран редактирования или создания заметки в ландшафтном режиме, либо
+     * уходим с этого экрана назад в портретном режиме */
+    private fun closeEditor() {
         if (isTwoPane()) {
             /* закрываем экран редактирования */
             parentFragmentManager.commit {
