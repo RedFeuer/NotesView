@@ -12,4 +12,11 @@ interface AdapterDelegate {
     fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder
     /* Привязываем данные к ViewHolder */
     fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: NoteListItem)
+    fun onBindViewHolder(
+        holder : RecyclerView.ViewHolder,
+        item : NoteListItem,
+        payloads : List<Any>,
+    ) {
+        onBindViewHolder(holder, item)
+    }
 }

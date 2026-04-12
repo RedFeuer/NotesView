@@ -300,6 +300,37 @@ class NoteStackView @JvmOverloads constructor(
         rebuildChildren() // обновляем отображение заметок в стеке
     }
 
+    fun updateNote(updatedNote : Note) {
+        val noteIndex = notes.indexOfFirst { it.uiId == updatedNote.uiId }
+        if (noteIndex == -1) return
+
+        notes[noteIndex] = updatedNote
+
+        val childIndex = findChildIndexForNote(updatedNote.uiId) ?: return
+        val child = getChildAt(childIndex) as? NoteView ?: return
+
+        child.bind(noteMapper.mapDomainModelToUi(updatedNote))
+    }
+
+    /* ищем какой дочерний NoteView соответствует заметке */
+    private fun findChildIndexForNote(noteUiId : String) : Int? {
+        return if (isExpanded) {
+            /* развернутый стек */
+            val index = notes.indexOfFirst { it.uiId == noteUiId }
+            if (index == -1) null else index
+        } else {
+            /* свернутый стек */
+            val visibleNotes = notes.take(stackMaxSize)
+            val visibleIndex = visibleNotes.indexOfFirst { it.uiId == noteUiId }
+            if (visibleIndex == -1) {
+                /* невидимую карточку не обновляем */
+                null
+            } else {
+                visibleNotes.size - 1 - visibleIndex // из-за asReversed()
+            }
+        }
+    }
+
     /* метод для изменения состояния стека между развернутым и свернутым
     * обновляет состояние экрана */
     private fun setExpanded(expanded: Boolean) {
