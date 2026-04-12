@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -43,10 +44,13 @@ import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
+import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
 import java.util.Date
 
 class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
+    /** ViewModel для навигации (список - редактор заметки) */
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels()
     /** ViewModel для хранения состояния UI */
     private val viewModel : NoteEditorViewModel by viewModels()
     private val args : NoteEditorFragmentArgs by navArgs()
@@ -88,10 +92,11 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
                     },
                     onSaveClick = {
                         if (viewModel.saveNote()) {
-                            closeEditor()
+                            editorHostViewModel.close()
+//                            closeEditor()
                         }
                     },
-                    onCloseRequest = { closeEditor() }
+                    onCloseRequest = { editorHostViewModel.close() }
                 )
             }
         }

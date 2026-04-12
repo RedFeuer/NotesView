@@ -43,10 +43,12 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     when {
                         isTwoPane() && isDetailEditorOpened() -> {
-                            closeDetailEditor()
+//                            closeDetailEditor()
+                            editorHostViewMode.close()
                         }
                         !isTwoPane() && isEditorOpenedNavHost() -> {
-                            popEditorFromNavHost()
+//                            popEditorFromNavHost()
+                            editorHostViewMode.close()
                         }
                         else -> {
                             showExitConfirmationDialog()
