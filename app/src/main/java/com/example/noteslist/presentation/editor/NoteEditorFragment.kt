@@ -50,8 +50,6 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
     /** ViewModel для хранения состояния UI */
     private val viewModel : NoteEditorViewModel by viewModels()
     private val args : NoteEditorFragmentArgs by navArgs()
-    /** Singleton репозитория для актуальности заметок */
-    private val repository = NotesRepositoryImpl.instance
 
     companion object {
         private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
@@ -76,28 +74,22 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
 
                 NoteEditorScreen (
                     uiState = uiState,
-                    initialNote = args.note,
-                    isEditMode = args.isEditMode,
-                    onSaveClick = { title, description, isImportant, isViewed ->
-                        if (args.isEditMode && args.note != null) {
-                            repository.updateNote(
-                                args.note!!.copy(
-                                    title = title,
-                                    description = description,
-                                    isImportant = isImportant,
-                                    isViewed = isViewed,
-                                )
-                            )
-                        } else {
-                            repository.addNote(
-                                Note(
-                                    title = title,
-                                    description = description,
-                                    isImportant = isImportant,
-                                )
-                            )
+                    onTitleChanged = { title ->
+                        viewModel.onTitleChanged(title)
+                    },
+                    onDescriptionChanged = { description ->
+                        viewModel.onDescriptionChanged(description)
+                    },
+                    onIsImportantChanged = { isImportant ->
+                        viewModel.onIsImportantChanged(isImportant)
+                    },
+                    onIsViewedChanged = { isViewed ->
+                        viewModel.onIsViewedChanged(isViewed)
+                    },
+                    onSaveClick = {
+                        if (viewModel.saveNote()) {
+                            closeEditor()
                         }
-                        closeEditor()
                     },
                     onCloseRequest = { closeEditor() }
                 )
@@ -135,38 +127,17 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
 @Composable
 private fun NoteEditorScreen(
     uiState : NoteEditorUiState,
-    initialNote : Note?,
-    isEditMode : Boolean,
-    onSaveClick: (
-        title : String,
-        description : String?,
-        isImportant : Boolean,
-        isViewed : Boolean,
-    ) -> Unit,
+    onTitleChanged : (String) -> Unit,
+    onDescriptionChanged : (String) -> Unit,
+    onIsImportantChanged : (Boolean) -> Unit,
+    onIsViewedChanged : (Boolean) -> Unit,
+    onSaveClick: () -> Unit,
     onCloseRequest : () -> Unit,
 ) {
-    /* TODO: убрать все локальные remember и получить состояние из uiState */
     var showOnDiscardChangesDialog by remember { mutableStateOf(false) }
-    /* если берем в режиме редактирования, то достаем конкретную заметку initialNote из репозитория
-    * если хотим создать новую заметку, то поля пустые */
-    var title by remember { mutableStateOf(initialNote?.title.orEmpty()) }
-    var description by remember { mutableStateOf(initialNote?.description.orEmpty()) }
-    var isImportant by remember { mutableStateOf(initialNote?.isImportant ?: false) }
-    var isViewed by remember { mutableStateOf(initialNote?.isViewed ?: false) }
-    var showEmptyTitleError by remember { mutableStateOf(false) }
-
-    val initialTitle = remember(initialNote) { initialNote?.title.orEmpty() }
-    val initialDescription = remember(initialNote) { initialNote?.description.orEmpty() }
-    val initialIsImportant = remember(initialNote) { initialNote?.isImportant ?: false }
-    val initialIsViewed = remember(initialNote) { initialNote?.isViewed ?: false }
-
-    val isChanged = (title != initialTitle ||
-            description != initialDescription ||
-            isImportant != initialIsImportant ||
-            isViewed != initialIsViewed)
 
     BackHandler {
-        if (isChanged) {
+        if (uiState.isChanged) {
             showOnDiscardChangesDialog = true
         } else {
             onCloseRequest()
@@ -198,15 +169,6 @@ private fun NoteEditorScreen(
         )
     }
 
-    val noteMapper = NoteMapper()
-
-    val createdAtText = remember(initialNote?.createdAtMillis) {
-        initialNote?.createdAtMillis?.let {
-//            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(it))
-            noteMapper.createdAtFormatter.format(Date(it))
-        }.orEmpty()
-    }
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -218,26 +180,18 @@ private fun NoteEditorScreen(
         verticalArrangement = Arrangement.Top,
     ) {
         Text(
-            text = if (isEditMode) "Редактирование заметки" else "Новая заметка",
+            text = if (uiState.isEditMode) "Редактирование заметки" else "Новая заметка",
             style = MaterialTheme.typography.headlineSmall,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = title,
-            onValueChange = {
-                title = it
-                if (it.isNotBlank()) {
-                    showEmptyTitleError = false
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Заголовок") },
-            singleLine = true,
-            isError = showEmptyTitleError,
+            value = uiState.title,
+            onValueChange = onTitleChanged,
+            isError = uiState.showEmptyTitleError,
         )
-        if (showEmptyTitleError) {
+        if (uiState.showEmptyTitleError) {
             Text(
                 text = "Необходимо заполнить",
                 color = Color.Red,
@@ -248,13 +202,8 @@ private fun NoteEditorScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp),
-            label = { Text("Текст заметки") },
-            singleLine = false,
+            value = uiState.description,
+            onValueChange = onDescriptionChanged,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -265,12 +214,12 @@ private fun NoteEditorScreen(
         ) {
             Text("Важно")
             Checkbox(
-                checked = isImportant,
-                onCheckedChange = { isImportant = it },
+                checked = uiState.isImportant,
+                onCheckedChange = onIsImportantChanged,
             )
         }
 
-        if (isEditMode) {
+        if (uiState.isEditMode) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Row (
@@ -279,15 +228,15 @@ private fun NoteEditorScreen(
             ) {
                 Text("Прочитана")
                 Switch(
-                    checked = isViewed,
-                    onCheckedChange = { isViewed = it }
+                    checked = uiState.isViewed,
+                    onCheckedChange = onIsViewedChanged
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Создана: $createdAtText",
+                text = "Создана: ${uiState.createdAtText}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -295,22 +244,10 @@ private fun NoteEditorScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                if (title.isBlank()) {
-                    showEmptyTitleError = true
-                    return@Button
-                }
-
-                onSaveClick(
-                    title.trim(),
-                    description.takeIf { it.isNotBlank() },
-                    isImportant,
-                    isViewed,
-                )
-            },
+            onClick = onSaveClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isEditMode) "Сохранить" else "Добавить")
+            Text(if (uiState.isEditMode) "Сохранить" else "Добавить")
         }
     }
 }
