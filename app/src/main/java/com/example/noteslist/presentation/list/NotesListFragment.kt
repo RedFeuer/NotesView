@@ -7,6 +7,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,9 +18,12 @@ import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.editor.NoteEditorFragment
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
+import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
+    /** ViewModel обработки навигации экранов (список - редактирование) */
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels()
     /** Singleton репозитория для актуальности заметок */
     private val repository = NotesRepositoryImpl.instance
     /** множество раскрытых стеков заметок, где идентификатор - id стека*/
@@ -48,7 +52,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
-                openEditor(note)
+                editorHostViewModel.openEdit(note.uiId)
             },
             onNoteLongClick = { note ->
                 repository.toggleViewed(note.uiId)
@@ -71,7 +75,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         fabAddNote.setOnClickListener {
-            openEditor(null)
+            editorHostViewModel.openCreate()
         }
 
         recyclerViewNotes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -101,33 +105,33 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container
      * по сути проверка, что мы в ландшафтном режиме ориентации*/
-    private fun isTwoPane() : Boolean {
-        return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
-    }
+//    private fun isTwoPane() : Boolean {
+//        return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
+//    }
 
-    private fun openEditor(note : Note?) {
-        if (isTwoPane()) {
-            /* ландшафтный сплит-экран */
-            val args = bundleOf(
-                "note" to note,
-                "isEditMode" to (note != null)
-            )
-
-            requireActivity().supportFragmentManager.commit {
-                setReorderingAllowed(true)
-                /* в контейнер detail_fragment_container кладем NoteEditorFragment  */
-                replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
-            }
-        } else {
-            /* портретный экран */
-            val direction =
-                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
-                    note = note,
-                    isEditMode = note != null,
-                )
-            findNavController().navigate(direction)
-        }
-    }
+//    private fun openEditor(note : Note?) {
+//        if (isTwoPane()) {
+//            /* ландшафтный сплит-экран */
+//            val args = bundleOf(
+//                "note" to note,
+//                "isEditMode" to (note != null)
+//            )
+//
+//            requireActivity().supportFragmentManager.commit {
+//                setReorderingAllowed(true)
+//                /* в контейнер detail_fragment_container кладем NoteEditorFragment  */
+//                replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
+//            }
+//        } else {
+//            /* портретный экран */
+//            val direction =
+//                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+//                    note = note,
+//                    isEditMode = note != null,
+//                )
+//            findNavController().navigate(direction)
+//        }
+//    }
 
     /** при возврате на экран заново рендерим, чтобы отображать актуальный UI */
     override fun onResume() {
