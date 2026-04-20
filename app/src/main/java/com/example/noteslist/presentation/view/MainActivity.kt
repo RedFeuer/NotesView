@@ -23,17 +23,24 @@ import javax.inject.Inject
 
 //тут будешь ваша активити
 class MainActivity @Inject constructor(
-    /* TODO: прокинуть зависимости */
-    private val notesRepository: NotesRepository,
 ) : AppCompatActivity() {
-    private val editorHostViewMode : EditorHostViewModel by viewModels()
+
+    @Inject
+    lateinit var notesRepository : NotesRepository
+    /* TODO: добавить фабрику  */
+    @Inject
+    lateinit var editorHostViewModelFactory : EditorHostViewModelFactory
+
+    private val editorHostViewModel = EditorHostViewModel by viewModels(
+        editorHostViewModelFactory
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        editorHostViewMode.destination
+        editorHostViewModel.destination
             .onEach { destination -> renderEditorDestination(destination) }
             .launchIn(lifecycleScope)
 
@@ -44,11 +51,11 @@ class MainActivity @Inject constructor(
                     when {
                         isTwoPane() && isDetailEditorOpened() -> {
 //                            closeDetailEditor()
-                            editorHostViewMode.close()
+                            editorHostViewModel.close()
                         }
                         !isTwoPane() && isEditorOpenedNavHost() -> {
 //                            popEditorFromNavHost()
-                            editorHostViewMode.close()
+                            editorHostViewModel.close()
                         }
                         else -> {
                             showExitConfirmationDialog()
