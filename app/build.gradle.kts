@@ -8,7 +8,7 @@ plugins {
     id("kotlin-parcelize")
 
     // KSP
-    id("com.google.devtools.ksp") version "2.3.0"
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -73,6 +73,8 @@ dependencies {
     implementation(libs.navigation.ui.ktx)
 
     /* Dagger */
-    implementation("com.google.dagger:dagger-android:2.59.2")
-    ksp("com.google.dagger:dagger-compiler:2.59.2")
+    implementation(libs.dagger.android)
+
+    /* KSP */
+    ksp(libs.dagger.compiler)
 }
