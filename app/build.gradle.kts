@@ -6,6 +6,9 @@ plugins {
     // Jetpack Navigation
     alias(libs.plugins.androidx.navigation.safeargs)
     id("kotlin-parcelize")
+
+    // KSP
+    id("com.google.devtools.ksp") version "2.3.0"
 }
 
 android {
@@ -68,4 +71,8 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
+
+    /* Dagger */
+    implementation("com.google.dagger:dagger-android:2.59.2")
+    ksp("com.google.dagger:dagger-compiler:2.59.2")
 }
