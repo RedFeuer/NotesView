@@ -9,23 +9,23 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.commit
-import androidx.fragment.app.replace
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.example.noteslist.R
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
+import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.editor.NoteEditorFragment
 import com.example.noteslist.presentation.editorhost.EditorDestination
 import com.example.noteslist.presentation.list.NotesListFragmentDirections
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 //тут будешь ваша активити
-class MainActivity : AppCompatActivity() {
-
-    private val repository = NotesRepositoryImpl.instance
+class MainActivity @Inject constructor(
+    /* TODO: прокинуть зависимости */
+    private val notesRepository: NotesRepository,
+) : AppCompatActivity() {
     private val editorHostViewMode : EditorHostViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = repository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
 
                 if (currentDestinationId != R.id.note_editor_fragment) {
                     val direction = NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = repository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
 
                 val args = bundleOf(
                     "note" to note,
