@@ -423,18 +423,6 @@ class NoteStackView @JvmOverloads constructor(
         return !isExpanded || isAnimating // чтобы во время анимации не было кликов
     }
 
-    /* меняем состояние Note, а не NoteView как было до этого */
-    private fun markNoteAsViewed(note: Note) {
-        val index = notes.indexOfFirst { it.uiId == note.uiId }
-        if (index == -1) return // если заметка не найдена, ничего не делаем
-
-        val oldNote = notes[index]
-        if (oldNote.isViewed) return // если заметка уже помечена как просмотр
-
-        notes[index] = oldNote.copy(isViewed = true)
-        rebuildChildren()
-    }
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         /* ограничения по ширине от контейнера-родителя (NoteStackView) */
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
