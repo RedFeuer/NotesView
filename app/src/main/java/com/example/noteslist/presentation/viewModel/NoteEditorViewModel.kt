@@ -1,20 +1,20 @@
 package com.example.noteslist.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Date
+import javax.inject.Inject
 
-class NoteEditorViewModel(
-    /** Singleton репозитория для актуальности заметок */
-//    private val repository : NotesRepositoryImpl
+class NoteEditorViewModel @Inject constructor(
+    /* TODO : прокинуть зависимость */
+    private val notesRepository : NotesRepository,
 ) : ViewModel() {
-    private val repository = NotesRepositoryImpl.instance
     private val noteMapper = NoteMapper()
 
     private val _uiState = MutableStateFlow(NoteEditorUiState())
@@ -93,7 +93,7 @@ class NoteEditorViewModel(
         if (current.isEditMode) {
             val oldNote = sourceNote ?: return false
 
-            repository.updateNote(
+            notesRepository.updateNote(
                 oldNote.copy(
                     title = current.title.trim(),
                     description = current.description.takeIf { it.isNotBlank() },
@@ -102,7 +102,7 @@ class NoteEditorViewModel(
                 )
             )
         } else {
-            repository.addNote(
+            notesRepository.addNote(
                 Note(
                     title = current.title.trim(),
                     description = current.description.takeIf { it.isNotBlank() },

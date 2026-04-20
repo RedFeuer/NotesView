@@ -56,10 +56,4 @@ class NotesRepositoryImpl : NotesRepository {
             notes[index] = oldNote.copy(isViewed = !oldNote.isViewed)
         }
     }
-
-    /* Singleton экземпляр, чтобы все изменения проихсодили в нем */
-    /* TODO: потом это можно сделать просто в DI и убрать отсюда */
-    companion object {
-        val instance: NotesRepositoryImpl by lazy { NotesRepositoryImpl() }
-    }
 }

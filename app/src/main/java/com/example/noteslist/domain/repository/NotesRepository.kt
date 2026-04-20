@@ -2,6 +2,7 @@ package com.example.noteslist.domain.repository
 
 import com.example.noteslist.domain.domainModel.Note
 
+/* TODO: связать с реализацией */
 interface NotesRepository {
     fun getNotes() : List<Note>
     fun getNoteById(uiId : String): Note?
