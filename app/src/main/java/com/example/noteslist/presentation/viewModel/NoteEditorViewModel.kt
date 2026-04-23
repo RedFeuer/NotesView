@@ -1,20 +1,20 @@
 package com.example.noteslist.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
+import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
 import com.example.noteslist.domain.domainModel.Note
-import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Date
-import javax.inject.Inject
 
-class NoteEditorViewModel @Inject constructor(
-    /* TODO : прокинуть зависимость */
-    private val notesRepository : NotesRepository,
+class NoteEditorViewModel(
+    /** Singleton репозитория для актуальности заметок */
+//    private val repository : NotesRepositoryImpl
 ) : ViewModel() {
+    private val notesRepository = NotesRepositoryImpl.instance
     private val noteMapper = NoteMapper()
 
     private val _uiState = MutableStateFlow(NoteEditorUiState())
@@ -82,34 +82,53 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     fun saveNote() : Boolean {
-        val current = _uiState.value
-
         /* предупреждение, что надо дать заметке название */
-        if (current.title.isBlank()) {
-            _uiState.value = current.copy(showEmptyTitleError = true)
+        if (!validateTitleForSave()) {
             return false
         }
 
-        if (current.isEditMode) {
-            val oldNote = sourceNote ?: return false
-
-            notesRepository.updateNote(
-                oldNote.copy(
-                    title = current.title.trim(),
-                    description = current.description.takeIf { it.isNotBlank() },
-                    isImportant = current.isImportant,
-                    isViewed = current.isViewed,
-                )
-            )
+        val current = _uiState.value
+        return if (current.isEditMode) {
+            editNote(current)
         } else {
-            notesRepository.addNote(
-                Note(
-                    title = current.title.trim(),
-                    description = current.description.takeIf { it.isNotBlank() },
-                    isImportant = current.isImportant,
-                )
-            )
+            createNewNote(current)
         }
+    }
+
+    private fun validateTitleForSave() : Boolean {
+        val current = _uiState.value
+
+        return if (current.title.isBlank()) {
+            _uiState.value = current.copy(showEmptyTitleError = true)
+            false
+        } else {
+            true
+        }
+    }
+
+    private fun editNote(current: NoteEditorUiState) : Boolean {
+        val oldNote = sourceNote ?: return false
+
+        notesRepository.updateNote(
+            oldNote.copy(
+                title = current.title.trim(),
+                description = current.description.takeIf { it.isNotBlank() },
+                isImportant = current.isImportant,
+                isViewed = current.isViewed,
+            )
+        )
+
+        return true
+    }
+
+    private fun createNewNote(current: NoteEditorUiState) : Boolean {
+        notesRepository.addNote(
+            Note(
+                title = current.title.trim(),
+                description = current.description.takeIf { it.isNotBlank() },
+                isImportant = current.isImportant,
+            )
+        )
 
         return true
     }
