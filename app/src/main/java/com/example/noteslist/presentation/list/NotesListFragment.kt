@@ -103,36 +103,6 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         }
     }
 
-    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container
-     * по сути проверка, что мы в ландшафтном режиме ориентации*/
-//    private fun isTwoPane() : Boolean {
-//        return requireActivity().findViewById<View?>(R.id.detail_fragment_container) != null
-//    }
-
-//    private fun openEditor(note : Note?) {
-//        if (isTwoPane()) {
-//            /* ландшафтный сплит-экран */
-//            val args = bundleOf(
-//                "note" to note,
-//                "isEditMode" to (note != null)
-//            )
-//
-//            requireActivity().supportFragmentManager.commit {
-//                setReorderingAllowed(true)
-//                /* в контейнер detail_fragment_container кладем NoteEditorFragment  */
-//                replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
-//            }
-//        } else {
-//            /* портретный экран */
-//            val direction =
-//                NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
-//                    note = note,
-//                    isEditMode = note != null,
-//                )
-//            findNavController().navigate(direction)
-//        }
-//    }
-
     /** при возврате на экран заново рендерим, чтобы отображать актуальный UI */
     override fun onResume() {
         super.onResume()
