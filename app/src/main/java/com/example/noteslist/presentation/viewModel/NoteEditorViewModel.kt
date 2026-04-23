@@ -14,7 +14,7 @@ class NoteEditorViewModel(
     /** Singleton репозитория для актуальности заметок */
 //    private val repository : NotesRepositoryImpl
 ) : ViewModel() {
-    private val repository = NotesRepositoryImpl.instance
+    private val notesRepository = NotesRepositoryImpl.instance
     private val noteMapper = NoteMapper()
 
     private val _uiState = MutableStateFlow(NoteEditorUiState())
@@ -82,34 +82,53 @@ class NoteEditorViewModel(
     }
 
     fun saveNote() : Boolean {
-        val current = _uiState.value
-
         /* предупреждение, что надо дать заметке название */
-        if (current.title.isBlank()) {
-            _uiState.value = current.copy(showEmptyTitleError = true)
+        if (!validateTitleForSave()) {
             return false
         }
 
-        if (current.isEditMode) {
-            val oldNote = sourceNote ?: return false
-
-            repository.updateNote(
-                oldNote.copy(
-                    title = current.title.trim(),
-                    description = current.description.takeIf { it.isNotBlank() },
-                    isImportant = current.isImportant,
-                    isViewed = current.isViewed,
-                )
-            )
+        val current = _uiState.value
+        return if (current.isEditMode) {
+            editNote(current)
         } else {
-            repository.addNote(
-                Note(
-                    title = current.title.trim(),
-                    description = current.description.takeIf { it.isNotBlank() },
-                    isImportant = current.isImportant,
-                )
-            )
+            createNewNote(current)
         }
+    }
+
+    private fun validateTitleForSave() : Boolean {
+        val current = _uiState.value
+
+        return if (current.title.isBlank()) {
+            _uiState.value = current.copy(showEmptyTitleError = true)
+            false
+        } else {
+            true
+        }
+    }
+
+    private fun editNote(current: NoteEditorUiState) : Boolean {
+        val oldNote = sourceNote ?: return false
+
+        notesRepository.updateNote(
+            oldNote.copy(
+                title = current.title.trim(),
+                description = current.description.takeIf { it.isNotBlank() },
+                isImportant = current.isImportant,
+                isViewed = current.isViewed,
+            )
+        )
+
+        return true
+    }
+
+    private fun createNewNote(current: NoteEditorUiState) : Boolean {
+        notesRepository.addNote(
+            Note(
+                title = current.title.trim(),
+                description = current.description.takeIf { it.isNotBlank() },
+                isImportant = current.isImportant,
+            )
+        )
 
         return true
     }
