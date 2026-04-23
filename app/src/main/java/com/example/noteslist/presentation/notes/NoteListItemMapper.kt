@@ -24,15 +24,9 @@ fun List<Note>.toNoteListItems(): List<NoteListItem> {
 
                 /* все заметки с одинаковой датой создания */
                 val notesOfDay = notesGroupedByDate.getValue(date)
-                /* важные заметки сортируем по дате создания, чтобы они были в нужном порядке внутри группы */
-                val importantNotes = notesOfDay
-                    .filter { it.isImportant }
-                    .sortedByDescending { it.createdAtMillis }
 
-                /* обычные заметки сортируем по дате создания, чтобы они были в нужном порядке внутри группы */
-                val regularNotes = notesOfDay
-                    .filterNot { it.isImportant }
-                    .sortedByDescending { it.createdAtMillis }
+                /* разделяем заметки по факту важности */
+                val (importantNotes, regularNotes) = notesOfDay.partition { it.isImportant }
 
                 /* добавляем важные заметки по отдельности, чтобы они отображались в виде отдельных элементов списка */
                 importantNotes.forEach { note ->
