@@ -3,29 +3,26 @@ package com.example.noteslist.presentation.list
 //import com.example.noteslist.presentation.editor.NoteEditorActivity
 import android.os.Bundle
 import android.view.View
-import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-import com.example.noteslist.domain.domainModel.Note
-import com.example.noteslist.presentation.editor.NoteEditorFragment
+import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import javax.inject.Inject
 
-class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
+class NotesListFragment @Inject constructor(
+    private val notesRepository: NotesRepository,
+) : Fragment(R.layout.fragment_notes_list) {
     /** ViewModel обработки навигации экранов (список - редактирование) */
     private val editorHostViewModel : EditorHostViewModel by activityViewModels()
     /** Singleton репозитория для актуальности заметок */
-    private val repository = NotesRepositoryImpl.instance
     /** множество раскрытых стеков заметок, где идентификатор - id стека*/
     private var expandedStackIds = mutableSetOf<String>()
 
@@ -55,7 +52,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
                 editorHostViewModel.openEdit(note.uiId)
             },
             onNoteLongClick = { note ->
-                repository.toggleViewed(note.uiId)
+                notesRepository.toggleViewed(note.uiId)
                 renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
             },
             isStackExpanded = { stackId ->
@@ -111,6 +108,6 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     /** прикрепление списка заметок к экрану приложения */
     private fun renderNotes() {
-        notesAdapter.submitList(repository.getNotes().toNoteListItems())
+        notesAdapter.submitList(notesRepository.getNotes().toNoteListItems())
     }
 }
