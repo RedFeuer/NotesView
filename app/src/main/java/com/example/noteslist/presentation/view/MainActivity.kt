@@ -9,9 +9,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.commit
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.example.noteslist.R
+import com.example.noteslist.di.subcomponent.MainActivityComponent
 import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.editor.NoteEditorFragment
 import com.example.noteslist.presentation.editorhost.EditorDestination
@@ -22,17 +24,19 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 //тут будешь ваша активити
-class MainActivity @Inject constructor(
-) : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
+
+    lateinit var activityComponent: MainActivityComponent
+        private set
 
     @Inject
     lateinit var notesRepository : NotesRepository
     /* TODO: добавить фабрику  */
     @Inject
-    lateinit var editorHostViewModelFactory : EditorHostViewModelFactory
+    lateinit var viewModelFactory : ViewModelProvider.Factory
 
     private val editorHostViewModel = EditorHostViewModel by viewModels(
-        editorHostViewModelFactory
+        viewModelFactory
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

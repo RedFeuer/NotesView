@@ -1,12 +1,12 @@
 package com.example.noteslist.presentation.list
 
-//import com.example.noteslist.presentation.editor.NoteEditorActivity
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
@@ -17,11 +17,16 @@ import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import javax.inject.Inject
 
-class NotesListFragment @Inject constructor(
-    private val notesRepository: NotesRepository,
-) : Fragment(R.layout.fragment_notes_list) {
+class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
+    /** Репозиторий для работы с хранением заметок */
+    @Inject
+    lateinit var notesRepository: NotesRepository
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     /** ViewModel обработки навигации экранов (список - редактирование) */
-    private val editorHostViewModel : EditorHostViewModel by activityViewModels()
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels(
+        viewModelFactory
+    )
     /** Singleton репозитория для актуальности заметок */
     /** множество раскрытых стеков заметок, где идентификатор - id стека*/
     private var expandedStackIds = mutableSetOf<String>()
