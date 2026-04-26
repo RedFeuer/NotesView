@@ -59,6 +59,17 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
         private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
     }
 
+    /** Прицепляем фрагмент к MainActivity */
+    override fun onAttach(context: Context) {
+        (context as MainActivity)
+            .activityComponent
+            .noteEditorFragmentComponentFactory()
+            .create()
+            .inject(this)
+
+        super.onAttach(context)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
