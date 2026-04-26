@@ -16,9 +16,8 @@ import javax.inject.Inject
 class NoteEditorViewModel @Inject constructor(
     private val updateNoteUseCase: UpdateNoteUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
+    private val noteMapper : NoteMapper,
 ) : ViewModel() {
-    private val noteMapper = NoteMapper()
-
     private val _uiState = MutableStateFlow(NoteEditorUiState())
     val uiState : StateFlow<NoteEditorUiState> = _uiState.asStateFlow()
 

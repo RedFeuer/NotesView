@@ -4,8 +4,9 @@ import com.example.noteslist.domain.domainModel.Note
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
-class NoteMapper {
+class NoteMapper @Inject constructor() {
     val createdAtFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
 
     fun mapDomainModelToUi(note: Note): NoteUi {
