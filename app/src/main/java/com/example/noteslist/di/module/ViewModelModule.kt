@@ -6,6 +6,7 @@ import com.example.noteslist.di.viewModel.DaggerViewModelFactory
 import com.example.noteslist.di.viewModel.ViewModelKey
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
+import com.example.noteslist.presentation.viewModel.NotesListViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -14,6 +15,11 @@ import dagger.multibindings.IntoMap
 interface ViewModelModule {
     @Binds
     fun bindViewModelFactory(factory: DaggerViewModelFactory) : ViewModelProvider.Factory
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(NotesListViewModel::class)
+    fun provideNotesListViewModel(viewModel: NoteEditorViewModel) : ViewModel
 
     /** биндим EditorHostViewModel в мапу Multibinding как ViewModel */
     @Binds
