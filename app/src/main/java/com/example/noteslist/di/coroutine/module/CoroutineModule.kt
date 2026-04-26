@@ -1,6 +1,6 @@
 package com.example.noteslist.di.coroutine.module
 
-import com.example.noteslist.di.coroutine.qualifier.ApplicationCoroutineQualifier
+import com.example.noteslist.di.coroutine.qualifier.ApplicationCoroutineScope
 import com.example.noteslist.di.coroutine.qualifier.IoDispatcher
 import com.example.noteslist.di.scope.AppScope
 import dagger.Module
@@ -19,7 +19,7 @@ object CoroutineModule {
 
     @Provides
     @AppScope
-    @ApplicationCoroutineQualifier
+    @ApplicationCoroutineScope
     fun provideApplicationScope() : CoroutineScope {
         return CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("Application Scope"))
     }
