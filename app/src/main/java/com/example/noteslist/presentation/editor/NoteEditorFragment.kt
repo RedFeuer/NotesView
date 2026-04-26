@@ -56,7 +56,7 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
         viewModelFactory
     }
     /** ViewModel для хранения состояния UI */
-    private val noteEditorViewModel : NoteEditorViewModel by viewModels {
+    private val noteEditorViewModel : NoteEditorViewModel by activityViewModels {
         viewModelFactory
     }
     private val args : NoteEditorFragmentArgs by navArgs()
