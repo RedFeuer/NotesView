@@ -46,6 +46,17 @@ class NotesRepositoryImpl @Inject constructor(
                 title = "Сервис",
                 description = "Оплатить подписку",
             ),
+            /* прошлые сутки, чтобы проверить еще один стек */
+            Note(
+                title = "Пип гупип",
+                description = "Гугииии",
+                createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
+            ),
+            Note(
+                title = "Пип гупипgbgbgb",
+                description = "Гугииииgbgbgb",
+                createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
+            )
         )
     )
 
