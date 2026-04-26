@@ -2,8 +2,9 @@ package com.example.noteslist.data.repositoryImpl
 
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.repository.NotesRepository
+import javax.inject.Inject
 
-class NotesRepositoryImpl : NotesRepository {
+class NotesRepositoryImpl @Inject constructor() : NotesRepository {
     /* TODO: потом сделать Flow<Note>, чтобы подписаться в ViewModel и реактивно отображать на экране */
     private val notes = mutableListOf<Note>(
         //            Note(
