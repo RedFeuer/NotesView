@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.noteslist.di.viewModel.DaggerViewModelFactory
 import com.example.noteslist.di.viewModel.ViewModelKey
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
+import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -19,4 +20,10 @@ interface ViewModelModule {
     @IntoMap
     @ViewModelKey(EditorHostViewModel::class)
     fun bindEditorHostViewModel(viewModel: EditorHostViewModel): ViewModel
+
+    /** биндим NoteEditorViewModel в мапу Multibinding как ViewModel */
+    @Binds
+    @IntoMap
+    @ViewModelKey(NoteEditorViewModel::class)
+    fun bindNoteEditorViewModel(viewModel : NoteEditorViewModel) : ViewModel
 }
