@@ -1,6 +1,5 @@
 package com.example.noteslist.data.repositoryImpl
 
-import androidx.compose.runtime.mutableStateOf
 import com.example.noteslist.di.coroutine.qualifier.IoDispatcher
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.repository.NotesRepository
@@ -8,7 +7,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
