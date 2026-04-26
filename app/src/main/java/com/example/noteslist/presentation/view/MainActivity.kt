@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.example.noteslist.R
+import com.example.noteslist.di.NotesApp
 import com.example.noteslist.di.subcomponent.MainActivityComponent
 import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.editor.NoteEditorFragment
@@ -31,15 +32,22 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var notesRepository : NotesRepository
-    /* TODO: добавить фабрику  */
+    /** фабрика ViewModel'ей */
     @Inject
     lateinit var viewModelFactory : ViewModelProvider.Factory
 
-    private val editorHostViewModel = EditorHostViewModel by viewModels(
+    private val editorHostViewModel : EditorHostViewModel by viewModels {
         viewModelFactory
-    )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        activityComponent = (application as NotesApp)
+            .appComponent
+            .mainActivityComponentFactory()
+            .create()
+
+        activityComponent.inject(this)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)

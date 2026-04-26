@@ -1,5 +1,6 @@
 package com.example.noteslist.presentation.list
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.ViewCompat
@@ -13,6 +14,7 @@ import com.example.noteslist.R
 import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
+import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import javax.inject.Inject
@@ -24,9 +26,9 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     /** ViewModel обработки навигации экранов (список - редактирование) */
-    private val editorHostViewModel : EditorHostViewModel by activityViewModels(
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels {
         viewModelFactory
-    )
+    }
     /** Singleton репозитория для актуальности заметок */
     /** множество раскрытых стеков заметок, где идентификатор - id стека*/
     private var expandedStackIds = mutableSetOf<String>()
@@ -37,6 +39,16 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     companion object {
         private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
+    }
+
+    override fun onAttach(context: Context) {
+        (context as MainActivity)
+            .activityComponent
+            .notesListFragmentComponentFactory()
+            .create()
+            .inject(this)
+
+        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
