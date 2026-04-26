@@ -1,5 +1,6 @@
 package com.example.noteslist.presentation.editor
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.activity.compose.BackHandler
@@ -37,22 +38,27 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.noteslist.R
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.state.NoteEditorUiState
-import com.example.noteslist.presentation.view.NoteMapper
+import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
-import java.util.Date
+import javax.inject.Inject
 
 class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
+    @Inject
+    lateinit var viewModelFactory : ViewModelProvider.Factory
     /** ViewModel для навигации (список - редактор заметки) */
-    private val editorHostViewModel : EditorHostViewModel by activityViewModels()
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels {
+        viewModelFactory
+    }
     /** ViewModel для хранения состояния UI */
-    private val viewModel : NoteEditorViewModel by viewModels()
+    private val noteEditorViewModel : NoteEditorViewModel by viewModels {
+        viewModelFactory
+    }
     private val args : NoteEditorFragmentArgs by navArgs()
 
     companion object {
@@ -78,31 +84,31 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
             ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
         )
 
-        viewModel.init(
+        noteEditorViewModel.init(
             note = args.note,
             isEditMode = args.isEditMode
         )
 
         composeView.setContent {
             MaterialTheme {
-                val uiState by viewModel.uiState.collectAsState()
+                val uiState by noteEditorViewModel.uiState.collectAsState()
 
                 NoteEditorScreen (
                     uiState = uiState,
                     onTitleChanged = { title ->
-                        viewModel.onTitleChanged(title)
+                        noteEditorViewModel.onTitleChanged(title)
                     },
                     onDescriptionChanged = { description ->
-                        viewModel.onDescriptionChanged(description)
+                        noteEditorViewModel.onDescriptionChanged(description)
                     },
                     onIsImportantChanged = { isImportant ->
-                        viewModel.onIsImportantChanged(isImportant)
+                        noteEditorViewModel.onIsImportantChanged(isImportant)
                     },
                     onIsViewedChanged = { isViewed ->
-                        viewModel.onIsViewedChanged(isViewed)
+                        noteEditorViewModel.onIsViewedChanged(isViewed)
                     },
                     onSaveClick = {
-                        if (viewModel.saveNote()) {
+                        if (noteEditorViewModel.saveNote()) {
                             editorHostViewModel.close()
 //                            closeEditor()
                         }

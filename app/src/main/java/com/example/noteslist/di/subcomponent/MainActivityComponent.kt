@@ -11,6 +11,8 @@ interface MainActivityComponent {
 
     fun notesListFragmentComponentFactory() : NotesListFragmentComponent.Factory
 
+    fun noteEditorFragmentComponentFactory() : NoteEditorFragmentComponent.Factory
+
     @Subcomponent.Factory
     interface Factory {
         fun create() : MainActivityComponent
