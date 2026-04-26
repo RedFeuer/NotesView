@@ -19,7 +19,7 @@ interface ViewModelModule {
     @Binds
     @IntoMap
     @ViewModelKey(NotesListViewModel::class)
-    fun provideNotesListViewModel(viewModel: NoteEditorViewModel) : ViewModel
+    fun provideNotesListViewModel(viewModel: NotesListViewModel) : ViewModel
 
     /** биндим EditorHostViewModel в мапу Multibinding как ViewModel */
     @Binds
