@@ -7,7 +7,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
@@ -16,30 +19,27 @@ import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
+import com.example.noteslist.presentation.viewModel.NotesListViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
-    /** Репозиторий для работы с хранением заметок */
-    @Inject
-    lateinit var notesRepository: NotesRepository
+    /** Фабрика ViewModel'ей */
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     /** ViewModel обработки навигации экранов (список - редактирование) */
     private val editorHostViewModel : EditorHostViewModel by activityViewModels {
         viewModelFactory
     }
-    /** Singleton репозитория для актуальности заметок */
-    /** множество раскрытых стеков заметок, где идентификатор - id стека*/
-    private var expandedStackIds = mutableSetOf<String>()
+    /** ViewModel состояния списка заметок */
+    private val notesListViewModel : NotesListViewModel by activityViewModels {
+        viewModelFactory
+    }
 
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
     private lateinit var recyclerViewNotes : RecyclerView
-
-    companion object {
-        private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
-    }
 
     /** Прицепляем фрагмент к MainActivity */
     override fun onAttach(context: Context) {
@@ -70,18 +70,13 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
                 editorHostViewModel.openEdit(note.uiId)
             },
             onNoteLongClick = { note ->
-                notesRepository.toggleViewed(note.uiId)
-                renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
+                notesListViewModel.onNoteLongClick(note.uiId)
             },
             isStackExpanded = { stackId ->
-                expandedStackIds.contains(stackId)
+                notesListViewModel.uiState.value.expandedStackIds.contains(stackId)
             },
             onStackExpandedChange = { stackId, isExpanded ->
-                if (isExpanded) {
-                    expandedStackIds.add(stackId) // добавляем в множество заметок
-                } else {
-                    expandedStackIds.remove(stackId) // убираем из множества заметок
-                }
+                notesListViewModel.onStackExpandedChange(stackId, isExpanded)
             },
         )
 
@@ -110,22 +105,16 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             }
         })
 
-        requireActivity().supportFragmentManager.setFragmentResultListener(
-            NOTE_EDITOR_RESULT_KEY,
-            viewLifecycleOwner
-        ) { _, _ ->
-            renderNotes()
+        observeState()
+    }
+
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notesListViewModel.uiState.collect { state ->
+                    notesAdapter.submitList(state.items)
+                }
+            }
         }
-    }
-
-    /** при возврате на экран заново рендерим, чтобы отображать актуальный UI */
-    override fun onResume() {
-        super.onResume()
-        renderNotes()
-    }
-
-    /** прикрепление списка заметок к экрану приложения */
-    private fun renderNotes() {
-        notesAdapter.submitList(notesRepository.getNotes().toNoteListItems())
     }
 }
