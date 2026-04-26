@@ -3,6 +3,8 @@ package com.example.noteslist.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.repository.NotesRepository
+import com.example.noteslist.domain.useCase.CreateNoteUseCase
+import com.example.noteslist.domain.useCase.UpdateNoteUseCase
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +14,8 @@ import java.util.Date
 import javax.inject.Inject
 
 class NoteEditorViewModel @Inject constructor(
-    /** Singleton репозитория для актуальности заметок */
-    private val notesRepository : NotesRepository
+    private val updateNoteUseCase: UpdateNoteUseCase,
+    private val createNoteUseCase: CreateNoteUseCase,
 ) : ViewModel() {
     private val noteMapper = NoteMapper()
 
@@ -109,7 +111,7 @@ class NoteEditorViewModel @Inject constructor(
     private fun editNote(current: NoteEditorUiState) : Boolean {
         val oldNote = sourceNote ?: return false
 
-        notesRepository.updateNote(
+        updateNoteUseCase(
             oldNote.copy(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },
@@ -122,7 +124,7 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     private fun createNewNote(current: NoteEditorUiState) : Boolean {
-        notesRepository.addNote(
+        createNoteUseCase(
             Note(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },
