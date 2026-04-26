@@ -9,7 +9,7 @@ import dagger.Subcomponent
 interface MainActivityComponent {
     fun inject(activity: MainActivity)
 
-    fun notesListFragmentComponentFactory() : NotesListFragmentComponent
+    fun notesListFragmentComponentFactory() : NotesListFragmentComponent.Factory
 
     @Subcomponent.Factory
     interface Factory {
