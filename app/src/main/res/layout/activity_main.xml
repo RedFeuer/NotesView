@@ -2,18 +2,26 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
+    <com.example.noteslist.presentation.NoteView
+        android:id="@+id/noteView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Hello, XML!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"
+
+        style="@style/NoteStyle.IsNotViewed"
+
+        app:title="Моя заметка"
+        app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."
+        app:createdAtText="01.03.2026 20:26"
+        app:isImportant="true"
+
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="NoteStyle">
+        <item name="noteCornerRadius">@dimen/note_view_corner_radius</item>
+        <item name="noteElevation">@dimen/note_view_elevation</item>
+    </style>
+
+    <style name="NoteStyle.IsNotViewed" parent="NoteStyle">
+        <item name="isViewed">false</item>
+
+        <item name="cardColor">@color/note_card_color</item>
+        <item name="headerColor">@color/note_header_color</item>
+
+        <item name="titleTextColor">@color/note_title_text_color</item>
+        <item name="descriptionTextColor">@color/note_content_text_color</item>
+        <item name="createdAtTextColor">@color/note_created_at_text_color</item>
+    </style>
+
+    <style name="NoteStyle.IsViewed" parent="NoteStyle">
+        <item name="isViewed">true</item>
+
+        <item name="cardColor">@color/viewed_note_card_color</item>
+        <item name="headerColor">@color/viewed_header_color</item>
+
+        <item name="titleTextColor">@color/viewed_note_title_text_color</item>
+        <item name="descriptionTextColor">@color/viewed_note_content_text_color</item>
+        <item name="createdAtTextColor">@color/viewed_note_created_at_text_color</item>
+    </style>
+</resources>

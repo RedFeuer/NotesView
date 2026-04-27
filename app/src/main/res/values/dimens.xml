@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name = "note_view_width">200dp</dimen>
+    <dimen name = "note_view_height">200dp</dimen>
+    <dimen name="note_view_corner_radius">16dp</dimen>
+    <dimen name="note_view_elevation">8dp</dimen>
+    <dimen name="note_view_title_text_size">24sp</dimen>
+    <dimen name="note_view_description_text_size">18sp</dimen>
+    <dimen name="note_view_created_at_text_size">14sp</dimen>
+</resources>

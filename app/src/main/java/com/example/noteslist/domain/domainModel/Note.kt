@@ -16,6 +16,7 @@ data class Note(
     val isViewed: Boolean = false, // по умолчанию не была просмотрена
     /* описание заметки */
     val description: String? = null, // по умолчанию заметка с пустым описанием
-    /* время создания */
+    /* время создания
+    * в UI это уже String - надо будет подумать над кастом*/
     val createdAtMillis: Long = System.currentTimeMillis(), // по умолчанию - текущее время
 )
