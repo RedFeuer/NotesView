@@ -6,6 +6,9 @@ plugins {
     // Jetpack Navigation
     alias(libs.plugins.androidx.navigation.safeargs)
     id("kotlin-parcelize")
+
+    // KSP
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -63,9 +66,18 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    /* LeakCanary */
+    debugImplementation(libs.leakcanary.android)
+
     // JetpackNavigation
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
+
+    /* Dagger */
+    implementation(libs.dagger.android)
+
+    /* KSP */
+    ksp(libs.dagger.compiler)
 }

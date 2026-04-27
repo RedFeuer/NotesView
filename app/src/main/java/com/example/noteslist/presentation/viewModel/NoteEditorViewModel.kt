@@ -1,55 +1,74 @@
 package com.example.noteslist.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
+import androidx.lifecycle.viewModelScope
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.domain.useCase.CreateNoteUseCase
+import com.example.noteslist.domain.useCase.GetNoteByIdUseCase
+import com.example.noteslist.domain.useCase.UpdateNoteUseCase
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.Date
+import javax.inject.Inject
 
-class NoteEditorViewModel(
-    /** Singleton репозитория для актуальности заметок */
-//    private val repository : NotesRepositoryImpl
+class NoteEditorViewModel @Inject constructor(
+    private val updateNoteUseCase: UpdateNoteUseCase,
+    private val createNoteUseCase: CreateNoteUseCase,
+    private val getNoteByIdUseCase: GetNoteByIdUseCase,
+    private val noteMapper : NoteMapper,
 ) : ViewModel() {
-    private val notesRepository = NotesRepositoryImpl.instance
-    private val noteMapper = NoteMapper()
-
     private val _uiState = MutableStateFlow(NoteEditorUiState())
     val uiState : StateFlow<NoteEditorUiState> = _uiState.asStateFlow()
 
     /** исходная заметка для режима редактирования */
     private var sourceNote : Note? = null
-    private var isInitialized : Boolean = false
+    /** Job операции создания заметки */
+    private var creationJob : Job? = null
+    /** Job операции редактирования заметки */
+    private var editionJob : Job? = null
 
-    fun init(note : Note?, isEditMode : Boolean) {
-        if (isInitialized) return
-        isInitialized = true
-
-        sourceNote = note
-
-        val title = note?.title.orEmpty()
-        val description = note?.description.orEmpty()
-        val isImportant = note?.isImportant ?: false
-        val isViewed = note?.isViewed ?: false
-        val createdAtText = note?.createdAtMillis?.let {
-            noteMapper.createdAtFormatter.format(Date(it))
-        }.orEmpty()
-
+    fun startCreate() {
+        sourceNote = null
         _uiState.value = NoteEditorUiState(
-            title = title,
-            description = description,
-            isImportant = isImportant,
-            isViewed = isViewed,
-            createdAtText = createdAtText,
-            isEditMode = isEditMode,
-            initialTitle = title,
-            initialDescription = description,
-            initialIsImportant = isImportant,
-            initialIsViewed = isViewed,
+            isEditMode = false,
         )
+    }
+
+    fun startEdit(noteUiId : String) {
+        viewModelScope.launch {
+            val note = getNoteByIdUseCase(noteUiId) ?: return@launch
+
+            sourceNote = note
+
+            val title = note.title ?: ""
+            val description = note.description.orEmpty()
+            val isImportant = note.isImportant
+            val isViewed = note.isViewed
+            val createdAtText = noteMapper.createdAtFormatter.format(Date(note.createdAtMillis))
+
+            _uiState.value = NoteEditorUiState(
+                title = title,
+                description = description,
+                isImportant = isImportant,
+                isViewed = isViewed,
+                createdAtText = createdAtText,
+                isEditMode = true,
+                initialTitle = title,
+                initialDescription = description,
+                initialIsImportant = isImportant,
+                initialIsViewed = isViewed,
+            )
+        }
+    }
+
+    fun reset() {
+        sourceNote = null
+        _uiState.value = NoteEditorUiState()
     }
 
     fun onTitleChanged(newTitle : String) {
@@ -109,7 +128,9 @@ class NoteEditorViewModel(
     private fun editNote(current: NoteEditorUiState) : Boolean {
         val oldNote = sourceNote ?: return false
 
-        notesRepository.updateNote(
+        editionJob?.cancel()
+
+        editionJob = updateNoteUseCase(
             oldNote.copy(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },
@@ -122,7 +143,9 @@ class NoteEditorViewModel(
     }
 
     private fun createNewNote(current: NoteEditorUiState) : Boolean {
-        notesRepository.addNote(
+        creationJob?.cancel()
+
+        creationJob = createNoteUseCase(
             Note(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },

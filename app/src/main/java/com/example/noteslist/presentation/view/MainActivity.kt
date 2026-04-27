@@ -9,31 +9,50 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.commit
-import androidx.fragment.app.replace
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.example.noteslist.R
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
+import com.example.noteslist.di.NotesApp
+import com.example.noteslist.di.subcomponent.MainActivityComponent
+import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.editor.NoteEditorFragment
 import com.example.noteslist.presentation.editorhost.EditorDestination
 import com.example.noteslist.presentation.list.NotesListFragmentDirections
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
 
-    private val repository = NotesRepositoryImpl.instance
-    private val editorHostViewMode : EditorHostViewModel by viewModels()
+    lateinit var activityComponent: MainActivityComponent
+        private set
+
+    @Inject
+    lateinit var notesRepository : NotesRepository
+    /** фабрика ViewModel'ей */
+    @Inject
+    lateinit var viewModelFactory : ViewModelProvider.Factory
+
+    private val editorHostViewModel : EditorHostViewModel by viewModels {
+        viewModelFactory
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        activityComponent = (application as NotesApp)
+            .appComponent
+            .mainActivityComponentFactory()
+            .create()
+
+        activityComponent.inject(this)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        editorHostViewMode.destination
+        editorHostViewModel.destination
             .onEach { destination -> renderEditorDestination(destination) }
             .launchIn(lifecycleScope)
 
@@ -43,12 +62,10 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     when {
                         isTwoPane() && isDetailEditorOpened() -> {
-//                            closeDetailEditor()
-                            editorHostViewMode.close()
+                            editorHostViewModel.close()
                         }
                         !isTwoPane() && isEditorOpenedNavHost() -> {
-//                            popEditorFromNavHost()
-                            editorHostViewMode.close()
+                            editorHostViewModel.close()
                         }
                         else -> {
                             showExitConfirmationDialog()
@@ -59,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun renderEditorDestination(destination : EditorDestination) {
+    private suspend fun renderEditorDestination(destination : EditorDestination) {
         if (isTwoPane()) {
             renderTwoPaneEditor(destination)
         }
@@ -69,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** граф навигации внутри портретного экрана */
-    private fun renderSinglePaneEditor(destination : EditorDestination) {
+    private suspend fun renderSinglePaneEditor(destination : EditorDestination) {
         val navHost = supportFragmentManager.findFragmentById(R.id.navHostFragment)
             as? NavHostFragment ?: return
 
@@ -96,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = repository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
 
                 if (currentDestinationId != R.id.note_editor_fragment) {
                     val direction = NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
@@ -110,7 +127,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** граф навигации внутри ландшафтного экрана */
-    private fun renderTwoPaneEditor(destination: EditorDestination) {
+    private suspend fun renderTwoPaneEditor(destination: EditorDestination) {
         when (destination) {
             EditorDestination.Closed -> {
                 val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
@@ -133,7 +150,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = repository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
 
                 val args = bundleOf(
                     "note" to note,
@@ -159,15 +176,6 @@ class MainActivity : AppCompatActivity() {
         return fragment is NoteEditorFragment
     }
 
-    private fun closeDetailEditor() {
-        val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
-            ?: return
-
-        supportFragmentManager.beginTransaction()
-            .remove(fragment)
-            .commit()
-    }
-
     private fun isEditorOpenedNavHost() : Boolean {
         val navHost =
             supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
@@ -175,14 +183,6 @@ class MainActivity : AppCompatActivity() {
 
         val currentDestinationId = navHost.navController.currentDestination?.id
         return currentDestinationId == R.id.note_editor_fragment
-    }
-
-    private fun popEditorFromNavHost() {
-        val navHost =
-            supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
-                ?: return
-
-        navHost.navController.popBackStack()
     }
 
     private fun showExitConfirmationDialog() {

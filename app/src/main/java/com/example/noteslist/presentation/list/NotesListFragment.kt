@@ -1,40 +1,60 @@
 package com.example.noteslist.presentation.list
 
-//import com.example.noteslist.presentation.editor.NoteEditorActivity
+import android.content.Context
 import android.os.Bundle
 import android.view.View
-import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
-import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-import com.example.noteslist.domain.domainModel.Note
-import com.example.noteslist.presentation.editor.NoteEditorFragment
+import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
+import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
+import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
+import com.example.noteslist.presentation.viewModel.NotesListViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
+    /** Фабрика ViewModel'ей */
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     /** ViewModel обработки навигации экранов (список - редактирование) */
-    private val editorHostViewModel : EditorHostViewModel by activityViewModels()
-    /** Singleton репозитория для актуальности заметок */
-    private val repository = NotesRepositoryImpl.instance
-    /** множество раскрытых стеков заметок, где идентификатор - id стека*/
-    private var expandedStackIds = mutableSetOf<String>()
+    private val editorHostViewModel : EditorHostViewModel by activityViewModels {
+        viewModelFactory
+    }
+    /** ViewModel состояния списка заметок */
+    private val notesListViewModel : NotesListViewModel by activityViewModels {
+        viewModelFactory
+    }
+
+    private val noteEditorViewModel : NoteEditorViewModel by activityViewModels {
+        viewModelFactory
+    }
 
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
     private lateinit var recyclerViewNotes : RecyclerView
 
-    companion object {
-        private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
+    /** Прицепляем фрагмент к MainActivity */
+    override fun onAttach(context: Context) {
+        (context as MainActivity)
+            .activityComponent
+            .notesListFragmentComponentFactory()
+            .create()
+            .inject(this)
+
+        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,21 +72,17 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
+                noteEditorViewModel.startEdit(note.uiId)
                 editorHostViewModel.openEdit(note.uiId)
             },
             onNoteLongClick = { note ->
-                repository.toggleViewed(note.uiId)
-                renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
+                notesListViewModel.onNoteLongClick(note.uiId)
             },
             isStackExpanded = { stackId ->
-                expandedStackIds.contains(stackId)
+                notesListViewModel.uiState.value.expandedStackIds.contains(stackId)
             },
             onStackExpandedChange = { stackId, isExpanded ->
-                if (isExpanded) {
-                    expandedStackIds.add(stackId) // добавляем в множество заметок
-                } else {
-                    expandedStackIds.remove(stackId) // убираем из множества заметок
-                }
+                notesListViewModel.onStackExpandedChange(stackId, isExpanded)
             },
         )
 
@@ -75,6 +91,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         fabAddNote.setOnClickListener {
+            noteEditorViewModel.startCreate()
             editorHostViewModel.openCreate()
         }
 
@@ -95,22 +112,16 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             }
         })
 
-        requireActivity().supportFragmentManager.setFragmentResultListener(
-            NOTE_EDITOR_RESULT_KEY,
-            viewLifecycleOwner
-        ) { _, _ ->
-            renderNotes()
+        observeState()
+    }
+
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notesListViewModel.uiState.collect { state ->
+                    notesAdapter.submitList(state.items)
+                }
+            }
         }
-    }
-
-    /** при возврате на экран заново рендерим, чтобы отображать актуальный UI */
-    override fun onResume() {
-        super.onResume()
-        renderNotes()
-    }
-
-    /** прикрепление списка заметок к экрану приложения */
-    private fun renderNotes() {
-        notesAdapter.submitList(repository.getNotes().toNoteListItems())
     }
 }
