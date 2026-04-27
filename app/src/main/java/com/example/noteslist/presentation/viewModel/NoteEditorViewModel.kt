@@ -8,6 +8,7 @@ import com.example.noteslist.domain.useCase.GetNoteByIdUseCase
 import com.example.noteslist.domain.useCase.UpdateNoteUseCase
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +27,10 @@ class NoteEditorViewModel @Inject constructor(
 
     /** исходная заметка для режима редактирования */
     private var sourceNote : Note? = null
+    /** Job операции создания заметки */
+    private var creationJob : Job? = null
+    /** Job операции редактирования заметки */
+    private var editionJob : Job? = null
 
     fun startCreate() {
         sourceNote = null
@@ -123,7 +128,9 @@ class NoteEditorViewModel @Inject constructor(
     private fun editNote(current: NoteEditorUiState) : Boolean {
         val oldNote = sourceNote ?: return false
 
-        updateNoteUseCase(
+        editionJob?.cancel()
+
+        editionJob = updateNoteUseCase(
             oldNote.copy(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },
@@ -136,7 +143,9 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     private fun createNewNote(current: NoteEditorUiState) : Boolean {
-        createNoteUseCase(
+        creationJob?.cancel()
+
+        creationJob = createNoteUseCase(
             Note(
                 title = current.title.trim(),
                 description = current.description.takeIf { it.isNotBlank() },

@@ -7,6 +7,7 @@ import com.example.noteslist.domain.useCase.GetNotesUseCase
 import com.example.noteslist.domain.useCase.ToggleNoteViewedUseCase
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.state.NotesListUiState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,9 +39,14 @@ class NotesListViewModel @Inject constructor(
         initialValue = NotesListUiState(),
     )
 
+    /** Job отмечания заметки прочитанной */
+    private var togglingViewedJob : Job? = null
+
     /** обработка длинного нажатия */
     fun onNoteLongClick(noteUiId : String) {
-        toggleNoteViewedUseCase(noteUiId)
+        if (togglingViewedJob?.isActive == true) return
+
+        togglingViewedJob = toggleNoteViewedUseCase(noteUiId)
     }
 
     /** меняем expandedStackIds */
