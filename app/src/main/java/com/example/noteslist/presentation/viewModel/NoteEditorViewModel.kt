@@ -40,7 +40,7 @@ class NoteEditorViewModel @Inject constructor(
     private val titleChanges = MutableStateFlow<String>("")
     companion object {
         /** максимальная длина заметки */
-        const val MAX_TITLE_LENGTH = 50
+        const val MAX_TITLE_LENGTH = 5
     }
     /** Job операции создания заметки */
     private var creationJob : Job? = null
@@ -163,12 +163,18 @@ class NoteEditorViewModel @Inject constructor(
     private fun validateTitleForSave() : Boolean {
         val current = _uiState.value
 
-        return if (current.title.isBlank()) {
+        /* пустой заголовок заметки */
+        if (current.title.isBlank()) {
             _uiState.value = current.copy(showEmptyTitleError = true)
-            false
-        } else {
-            true
+            return false
         }
+
+        /* слишком длинный заголовок заметки */
+        if (current.title.length > MAX_TITLE_LENGTH) {
+            return false
+        }
+
+        return true
     }
 
     private fun editNote(current: NoteEditorUiState) : Boolean {
