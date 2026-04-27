@@ -1,20 +1,15 @@
 package com.example.noteslist.data.repositoryImpl
 
-import com.example.noteslist.di.coroutine.qualifier.IoDispatcher
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.repository.NotesRepository
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class NotesRepositoryImpl @Inject constructor(
-    @IoDispatcher private val ioDispatcher : CoroutineDispatcher,
-) : NotesRepository {
+class NotesRepositoryImpl @Inject constructor() : NotesRepository {
     private val notesFlow = MutableStateFlow(
         listOf(
             Note(
