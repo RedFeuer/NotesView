@@ -6,6 +6,7 @@ data class NoteEditorUiState(
     val isImportant : Boolean = false,
     val isViewed : Boolean = false,
     val showEmptyTitleError : Boolean = false,
+    val showTitleTooLongError : Boolean = false,
     val createdAtText : String = "",
     val isEditMode : Boolean = false,
 
