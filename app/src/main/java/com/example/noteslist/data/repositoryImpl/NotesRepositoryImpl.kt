@@ -67,44 +67,36 @@ class NotesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getNoteById(uiId: String): Note? {
-        return withContext(ioDispatcher) {
-            notesFlow.value.find { note -> note.uiId == uiId }
-        }
+        return notesFlow.value.find { note -> note.uiId == uiId }
     }
 
     override suspend fun addNote(note: Note) {
-        withContext(ioDispatcher) {
-            notesFlow.update { oldNotes ->
-                oldNotes + note
-            }
+        notesFlow.update { oldNotes ->
+            oldNotes + note
         }
     }
 
     override suspend fun updateNote(note: Note) {
-        withContext(ioDispatcher) {
-            notesFlow.update { oldNotes ->
-                oldNotes.map { oldNote ->
-                    if (oldNote.uiId == note.uiId) {
-                        note
-                    } else {
-                        oldNote
-                    }
+        notesFlow.update { oldNotes ->
+            oldNotes.map { oldNote ->
+                if (oldNote.uiId == note.uiId) {
+                    note
+                } else {
+                    oldNote
                 }
             }
         }
     }
 
     override suspend fun toggleViewed(uiId: String) {
-       withContext(ioDispatcher) {
-           notesFlow.update { oldNotes ->
-               oldNotes.map { oldNote ->
-                   if (oldNote.uiId == uiId) {
-                       oldNote.copy(isViewed = !oldNote.isViewed)
-                   } else {
-                       oldNote
-                   }
-               }
-           }
-       }
+        notesFlow.update { oldNotes ->
+            oldNotes.map { oldNote ->
+                if (oldNote.uiId == uiId) {
+                    oldNote.copy(isViewed = !oldNote.isViewed)
+                } else {
+                    oldNote
+                }
+            }
+        }
     }
 }
