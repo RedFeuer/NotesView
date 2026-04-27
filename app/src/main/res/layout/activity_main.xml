@@ -7,21 +7,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.noteslist.presentation.NoteView
-        android:id="@+id/noteView"
-        android:layout_width="0dp"
+    <com.example.noteslist.presentation.NoteStackView
+        android:id="@+id/noteStackView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-
-        style="@style/NoteStyle.IsNotViewed"
-
-        app:title="Моя заметка"
-        app:description="Текст заметки. Здесь может быть длинный текст, который будет отображаться в несколько строк."
-        app:createdAtText="01.03.2026 20:26"
-        app:isImportant="true"
-
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:stackMaxSize="@integer/stack_max_size"
+        app:stackSpacingVertically="@dimen/stack_spacing_vertically"
+        app:stackSpacingHorizontally="@dimen/stack_spacing_horizontally"
+        app:stackCollapseTextSize="@dimen/stack_collapse_text_size"
+        app:stackHorizontalPadding="@dimen/stack_horizontal_padding"
+        app:stackVerticalPadding="@dimen/stack_vertical_padding"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
@@ -64,14 +65,14 @@ class NoteView @JvmOverloads constructor(
 
     /* иконка-галочка для просмотренной заметки */
     private val viewedIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.baseline_done_outline_24)?.mutate()
-    private val viewedIconSizePx = dp(VIEWED_ICON_SIZE_DP).toInt()
-    private val viewedIconMarginPx = dp(VIEWED_ICON_MARGIN_DP).toInt()
+    private val viewedIconSizePx = VIEWED_ICON_SIZE_DP.dpToPx
+    private val viewedIconMarginPx = VIEWED_ICON_MARGIN_DP.dpToPx
     /* размеры иконки просмотренной задачи */
     private val viewedIconBounds = Rect()
     /* иконка-звездочка для важной заметки */
     private val importantIcon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.outline_bookmark_star_24)?.mutate()
-    private val importantIconSizePx = dp(IMPORTANT_ICON_SIZE_DP).toInt()
-    private val importantIconMarginPx = dp(IMPORTANT_ICON_MARGIN_DP).toInt()
+    private val importantIconSizePx = IMPORTANT_ICON_SIZE_DP.dpToPx
+    private val importantIconMarginPx = IMPORTANT_ICON_MARGIN_DP.dpToPx
     /* размеры иконки для важной заметки */
     private val importantIconBounds = Rect()
     /* layout для разметки текста, обработки переносов и fade */
@@ -149,11 +150,11 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    private val innerTextPaddingPx = dp(INNER_TEXT_PADDING_DP)
-    private var cornerRadiusPx = dp(CORNER_RADIUS_DP)
-    private var elevationPx = dp(ELEVATION_DP)
-    private val headerHeightPx = dp(HEADER_HEIGHT_DP)
-    private val fadeWidthPx = dp(FADE_WIDTH_DP)
+    private val innerTextPaddingPx = INNER_TEXT_PADDING_DP.dpToPx
+    private var cornerRadiusPx = CORNER_RADIUS_DP.dpToPx
+    private var elevationPx = ELEVATION_DP.dpToPx
+    private val headerHeightPx = HEADER_HEIGHT_DP.dpToPx
+    private val fadeWidthPx = FADE_WIDTH_DP.dpToPx
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -174,17 +175,17 @@ class NoteView @JvmOverloads constructor(
         /* ширина fade для description */
         private const val FADE_WIDTH_DP = 72f
         /* размер иконки галочки, что заметка прочитана */
-        private const val VIEWED_ICON_SIZE_DP = 20f
+        private const val VIEWED_ICON_SIZE_DP = 20
          /* отступ иконки галочки от края карточки */
-         private const val VIEWED_ICON_MARGIN_DP = 16f
+         private const val VIEWED_ICON_MARGIN_DP = 16
         /* размер иконки звездочки, что заметка важная */
-        private const val IMPORTANT_ICON_SIZE_DP = 32f
+        private const val IMPORTANT_ICON_SIZE_DP = 32
         /* отступ иконки звездочки от края карточки */
-        private const val IMPORTANT_ICON_MARGIN_DP = 16f
+        private const val IMPORTANT_ICON_MARGIN_DP = 16
     }
 
-    private var defaultWidthPx = dp(DEFAULT_WIDTH_DP)
-    private var defaultHeightPx = dp(DEFAULT_HEIGHT_DP)
+    private var defaultWidthPx = DEFAULT_WIDTH_DP.dpToPx
+    private var defaultHeightPx = DEFAULT_HEIGHT_DP.dpToPx
 
     init {
         /* добавили кликабельность */
@@ -210,8 +211,13 @@ class NoteView @JvmOverloads constructor(
         initPaints()
     }
 
-    /* вспомогательная функция для конвертации dp в пиксели для корректного отображения на разных устройствах */
-    private fun dp(v: Float) = v * resources.displayMetrics.density
+    fun bind(note: NoteUi) {
+        title = note.title
+        isImportant = note.isImportant
+        isViewed = note.isViewed
+        description = note.description
+        createdAtText = note.createdAt
+    }
 
     private fun titleStartX(): Float {
         val base = headerRect.left + innerTextPaddingPx
@@ -219,16 +225,6 @@ class NoteView @JvmOverloads constructor(
             return base
         }
         return base + importantIconSizePx + importantIconMarginPx
-    }
-
-    override fun performClick(): Boolean {
-        super.performClick()
-        /* при клике помечаем заметку как просмотренную и перерисовываем */
-        if (!isViewed) {
-            isViewed = true
-        }
-//        isViewed = !isViewed // для теста - переключение состояния при каждом клике
-        return true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

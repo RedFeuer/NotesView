@@ -1,5 +1,7 @@
 package com.example.noteslist.domain.domainModel
 
+import java.util.UUID
+
 data class Note(
     /* TODO: можно как в гуглзаметках добавить что-то типо bullet-листа с задачами
     *   сделать sealed Note и разные сущности:
@@ -8,6 +10,9 @@ data class Note(
 
     /* уникальный идентификатор заметки */
     val id: Long = 0, // Room потом нагенерит через PrimaryKey(autoGenerate = true) в Entity
+    /* временный id для ui до введения Room, чтобы помечать заметку прочитанной
+    * TODO: убрать этот идентификатор сразу как добавим Room*/
+    val uiId: String = UUID.randomUUID().toString(),
     /* заголовок заметки */
     val title: String? = null, // по умолчанию создается заметка без названия
     /* важность заметки */
