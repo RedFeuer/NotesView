@@ -6,7 +6,6 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class DaggerViewModelFactory @Inject constructor(
-    /** мапа : <ViewModel, которую хотим получить; Поставщик, создающий нужный экземпляр> */
     private val creators : Map<Class<out ViewModel>, @JvmSuppressWildcards Provider<ViewModel>>
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass : Class<T>) : T {
