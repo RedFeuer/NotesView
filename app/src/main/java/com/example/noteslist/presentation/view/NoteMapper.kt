@@ -1,4 +1,4 @@
-package com.example.noteslist.presentation
+package com.example.noteslist.presentation.view
 
 import com.example.noteslist.domain.domainModel.Note
 import java.text.SimpleDateFormat

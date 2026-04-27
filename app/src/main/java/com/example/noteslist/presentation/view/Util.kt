@@ -1,4 +1,4 @@
-package com.example.noteslist.presentation
+package com.example.noteslist.presentation.view
 
 import android.content.res.Resources
 import android.util.TypedValue

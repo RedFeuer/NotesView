@@ -1,4 +1,4 @@
-package com.example.noteslist.presentation
+package com.example.noteslist.presentation.view
 
 /* класс хранения информации о заметке для отображения на экране
 * не лазаем в Domain + имеем другой формат хранения времени создания и данные по умолчанию */
