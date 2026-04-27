@@ -1,15 +1,27 @@
 package com.example.noteslist.presentation.view
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
+import android.view.animation.PathInterpolator
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isGone
 import androidx.core.view.isNotEmpty
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_DELAY_MS
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_END_SCALE
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_START_SCALE
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.ITEM_START_DELAY_MS
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimation
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -34,6 +46,19 @@ class NoteStackView @JvmOverloads constructor(
 
     /* кнопка сворачивания заметок в развернутом состоянии */
     private val collapseView = AppCompatTextView(context)
+    /** флаг, что идет анимация */
+    private var isAnimating: Boolean = false
+    /** множество Animator'ов с сохранением порядка */
+    private var currentAnimatorSet: AnimatorSet? = null
+    /** вспомогательный класс с функциями анимаций */
+    /* TODO: когда добавим Hilt, нужно будет вынести в Module через DI вместе с stackInterpolator */
+    private val viewAnimation by lazy {
+        NoteStackViewAnimation(stackInterpolator)
+    }
+    /** cubic-bezier интерполятор */
+    private val stackInterpolator by lazy {
+        PathInterpolator(0.4f, 0.1f, 0.2f, 1f)
+    }
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -66,18 +91,145 @@ class NoteStackView @JvmOverloads constructor(
             isClickable = true
             isFocusable = true
             setOnClickListener {
-                setExpanded(false)
+                if (!isAnimating) {
+                    setExpanded(false)
+                }
             }
         }
     }
 
     private fun initListener() {
-        /* при клике на NoteStackView переключаем состояние между развернутым и свернутым */
+        /* при клике на NoteStackView переключаем состояние между свернутым и развернутым */
         setOnClickListener {
-            if (notes.isNotEmpty() && !isExpanded) {
-                setExpanded(true)
+            if (notes.isNotEmpty() && !isExpanded && !isAnimating) {
+                expandWithAnimation()
             }
         }
+    }
+
+    /** раскрытие с анимацией */
+    fun expandWithAnimation() {
+        /* пустой список или уже раскрыт или анимация уже запущена */
+        if (notes.isEmpty() || isExpanded || isAnimating) return
+
+        cancelCurrentAnimation()
+        isAnimating = true
+
+        setExpanded(true)
+
+        collapseView.alpha = 0f
+        collapseView.scaleX = COLLAPSE_BUTTON_START_SCALE
+        collapseView.scaleY = COLLAPSE_BUTTON_START_SCALE
+        collapseView.visibility = View.VISIBLE
+
+        doOnNextLayout {
+            startExpandAnimation()
+        }
+    }
+
+    /** основная анимация раскрытия */
+    private fun startExpandAnimation() {
+        val noteCount = notes.size // количество заметок в стеке
+        /* если пустой стек или не нужно открывать, то не запускаем анимацию */
+        if (!isExpanded || noteCount == 0) {
+            isAnimating = false
+            return
+        }
+
+        val visibleCount = minOf(noteCount, stackMaxSize) // количество видимых в стеке заметок
+        val moveDuration = viewAnimation.calculateMoveDuration(noteCount) // время выполнения анимации
+        val animators = mutableListOf<Animator>()
+
+        for (i in 0 until noteCount) {
+            val child = getChildAt(i)
+
+            /* индекс карточки внутри видимого стека
+            * то есть первые три карточки стартуют со своих видимых слоев, а
+            * все остальные карточки стартуют из позиции последнего видимого элемента */
+            val collapsedLayerIndex = if (i < visibleCount) {
+                visibleCount - 1 - i
+            } else {
+                0
+            }
+
+            /* стартовая позиция текущей карточки в стопке */
+            val startLeft = paddingLeft + collapsedLayerIndex * stackSpacingHorizontallyPx
+            val startTop = paddingTop + collapsedLayerIndex * stackSpacingVerticallyPx
+            /* конечная позиция карточки в развернутом списке */
+            val endLeft = child.left
+            val endTop = child.top
+
+            /* делаем временный визуальный сдвиг текущей карточки
+            * никак не влияет на layout(). просто визуально отображает в другом месте
+            * проще говоря: экранная_позиция = layout_позиция + translation */
+            val startTranslationX = (startLeft - endLeft).toFloat()
+            val startTranslationY = (startTop - endTop).toFloat()
+            child.translationX = startTranslationX
+            child.translationY = startTranslationY
+
+            val translateXAnimator = ObjectAnimator.ofFloat(
+                child, // объект, свойство которого меняем
+                View.TRANSLATION_X, // свойство объекта
+                startTranslationX, // ОТ: начинаем с визуально сдвинутого положения
+                0f // ДО: без сдвига относительно layout
+            )
+            val translateYAnimator = ObjectAnimator.ofFloat(
+                child, // объект, свойство которого меняем
+                View.TRANSLATION_Y, // свойство объекта
+                startTranslationY, // ОТ: начинаем с визуально сдвинутого положения
+                0f // ДО: без сдвига относительно layout
+            )
+
+            animators += AnimatorSet().apply {
+                playTogether(translateXAnimator, translateYAnimator) // комбинируем движение
+                startDelay = i * ITEM_START_DELAY_MS // задержка перед стартом для текущей карточки
+                duration = moveDuration // продолжительность движения
+                interpolator = stackInterpolator // неравномерность анимации
+            }
+        }
+
+        /* момент появления кнопки = последняя заметка + выполнение + ожидание появления кнопки */
+        val buttonStartDelay =
+            (noteCount - 1) * ITEM_START_DELAY_MS +
+                    moveDuration +
+                    COLLAPSE_BUTTON_DELAY_MS
+        /* запуск анимации кнопки Свернуть */
+        animators += viewAnimation.buildCollapseButtonAnimator(buttonStartDelay, collapseView)
+
+        currentAnimatorSet = AnimatorSet().apply {
+            playTogether(animators) // запуск всех анимаций в порядке по startDelay
+            addListener(object : AnimatorListenerAdapter() {
+                /* что делаем в конце анимации */
+                override fun onAnimationEnd(animation: Animator) {
+                    isAnimating = false
+                    currentAnimatorSet = null
+
+                    for (i in 0 until noteCount) {
+                        val child = getChildAt(i)
+                        child.translationX = 0f
+                        child.translationY = 0f
+                    }
+
+                    collapseView.alpha = 1f
+                    collapseView.scaleX = COLLAPSE_BUTTON_END_SCALE
+                    collapseView.scaleY = COLLAPSE_BUTTON_END_SCALE
+                }
+
+                /* что делаем при отмене анимиции */
+                override fun onAnimationCancel(animation: Animator) {
+                    isAnimating = false
+                    currentAnimatorSet = null
+                }
+            })
+            start() // запускаем анимации
+        }
+    }
+
+    /** отмена текущей анимации */
+    private fun cancelCurrentAnimation() {
+        currentAnimatorSet?.cancel()
+        currentAnimatorSet = null
+        isAnimating = false
     }
 
     private fun initAttrs(attrs: AttributeSet?, defStyleAttr: Int) {
@@ -210,7 +362,7 @@ class NoteStackView @JvmOverloads constructor(
 
     /* обработка клика по стеку, если он свернут */
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        return !isExpanded
+        return !isExpanded || isAnimating // чтобы во время анимации не было кликов
     }
 
     /* меняем состояние Note, а не NoteView как было до этого */
@@ -267,7 +419,7 @@ class NoteStackView @JvmOverloads constructor(
                 /* свернутый стек,
                 высота стека - это высота верхней заметки + отступы */
                 val frontChildHeight = getChildAt(childCount - 1).measuredHeight
-                totalHeight += frontChildHeight + stackSpacingVerticallyPx * (stackMaxSize - 1) // добавляем отступы для остальных заметок в стеке
+                totalHeight += frontChildHeight + stackSpacingVerticallyPx * (childCount - 1) // добавляем отступы для остальных заметок в стеке
             }
         }
         else {
