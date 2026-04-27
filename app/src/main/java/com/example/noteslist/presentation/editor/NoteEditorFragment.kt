@@ -37,10 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.example.noteslist.R
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.MainActivity
@@ -217,6 +215,13 @@ private fun NoteEditorScreen(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
+        if (uiState.showTitleTooLongError) {
+            Text(
+                text = "Слишком длинный заголовок, нужно сократить",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -264,7 +269,7 @@ private fun NoteEditorScreen(
 
         Button(
             onClick = onSaveClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(if (uiState.isEditMode) "Сохранить" else "Добавить")
         }
