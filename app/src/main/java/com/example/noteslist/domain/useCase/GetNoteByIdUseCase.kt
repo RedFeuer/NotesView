@@ -12,12 +12,7 @@ class GetNoteByIdUseCase @Inject constructor(
     private val notesRepository: NotesRepository,
     @ApplicationCoroutineScope private val applicationCoroutineScope: CoroutineScope,
 ) {
-    operator fun invoke(noteUiId: String) : Note? {
-        var note : Note? = null
-        applicationCoroutineScope.launch {
-            note = notesRepository.getNoteById(noteUiId)
-        }
-
-        return note
+    suspend operator fun invoke(noteUiId: String) : Note? {
+        return notesRepository.getNoteById(noteUiId)
     }
 }
