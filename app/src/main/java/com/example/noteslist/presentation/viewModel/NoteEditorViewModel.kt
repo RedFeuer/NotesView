@@ -71,6 +71,8 @@ class NoteEditorViewModel @Inject constructor(
 
     fun startCreate() {
         sourceNote = null
+        titleChanges.value = ""
+
         _uiState.value = NoteEditorUiState(
             isEditMode = false,
         )
@@ -87,6 +89,8 @@ class NoteEditorViewModel @Inject constructor(
             val isImportant = note.isImportant
             val isViewed = note.isViewed
             val createdAtText = noteMapper.createdAtFormatter.format(Date(note.createdAtMillis))
+
+            titleChanges.value = title
 
             _uiState.value = NoteEditorUiState(
                 title = title,
@@ -105,18 +109,23 @@ class NoteEditorViewModel @Inject constructor(
 
     fun reset() {
         sourceNote = null
+        titleChanges.value = ""
         _uiState.value = NoteEditorUiState()
     }
 
     fun onTitleChanged(newTitle : String) {
-        _uiState.value = _uiState.value.copy(
-            title = newTitle,
-            showEmptyTitleError = if (newTitle.isNotBlank()) {
-                false
-            } else {
-                _uiState.value.showEmptyTitleError
-            }
-        )
+        _uiState.update { current ->
+            current.copy(
+                title = newTitle,
+                showEmptyTitleError = if (newTitle.isNotBlank()) {
+                    false
+                } else {
+                    current.showEmptyTitleError
+                }
+            )
+        }
+
+        titleChanges.value = newTitle
     }
 
     fun onDescriptionChanged(newDescription : String) {
