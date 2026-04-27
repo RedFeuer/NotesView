@@ -3,7 +3,6 @@ package com.example.noteslist.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteslist.domain.domainModel.Note
-import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.domain.useCase.CreateNoteUseCase
 import com.example.noteslist.domain.useCase.GetNoteByIdUseCase
 import com.example.noteslist.domain.useCase.UpdateNoteUseCase
