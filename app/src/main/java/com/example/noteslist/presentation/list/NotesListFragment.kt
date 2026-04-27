@@ -3,6 +3,7 @@ package com.example.noteslist.presentation.list
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -14,9 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
-import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
-import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
@@ -41,6 +40,9 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     private val noteEditorViewModel : NoteEditorViewModel by activityViewModels {
         viewModelFactory
     }
+
+    /** виджет поиска заметок */
+    private lateinit var searchViewNotes : SearchView
 
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
@@ -68,6 +70,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         recyclerViewNotes = view.findViewById<RecyclerView>(R.id.recycler_view_notes)
         fabAddNote = view.findViewById<FloatingActionButton>(R.id.fab_add_note)
+        searchViewNotes = view.findViewById<SearchView>(R.id.search_view_notes)
 
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
@@ -84,6 +87,21 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             onStackExpandedChange = { stackId, isExpanded ->
                 notesListViewModel.onStackExpandedChange(stackId, isExpanded)
             },
+        )
+
+        searchViewNotes.setOnQueryTextListener(
+            object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    notesListViewModel.onSearchQueryChanged(query.orEmpty())
+                    searchViewNotes.clearFocus()
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    notesListViewModel.onSearchQueryChanged(newText.orEmpty())
+                    return true
+                }
+            }
         )
 
         recyclerViewNotes.layoutManager = LinearLayoutManager(requireContext())
@@ -113,6 +131,11 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         })
 
         observeState()
+    }
+
+    override fun onDestroyView() {
+        recyclerViewNotes.adapter = null
+        super.onDestroyView()
     }
 
     private fun observeState() {
