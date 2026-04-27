@@ -40,7 +40,7 @@ class NoteEditorViewModel @Inject constructor(
     private val titleChanges = MutableStateFlow<String>("")
     companion object {
         /** максимальная длина заметки */
-        const val MAX_TITLE_LENGTH = 5
+        const val MAX_TITLE_LENGTH = 50
     }
     /** Job операции создания заметки */
     private var creationJob : Job? = null
