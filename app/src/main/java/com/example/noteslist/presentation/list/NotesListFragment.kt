@@ -19,6 +19,7 @@ import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
+import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
 import com.example.noteslist.presentation.viewModel.NotesListViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
@@ -34,6 +35,10 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     }
     /** ViewModel состояния списка заметок */
     private val notesListViewModel : NotesListViewModel by activityViewModels {
+        viewModelFactory
+    }
+
+    private val noteEditorViewModel : NoteEditorViewModel by activityViewModels {
         viewModelFactory
     }
 
@@ -67,6 +72,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
+                noteEditorViewModel.startEdit(note.uiId)
                 editorHostViewModel.openEdit(note.uiId)
             },
             onNoteLongClick = { note ->
@@ -85,6 +91,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
         /* обработка нажатия по Floating Action Button добавления новой заметки */
         fabAddNote.setOnClickListener {
+            noteEditorViewModel.startCreate()
             editorHostViewModel.openCreate()
         }
 

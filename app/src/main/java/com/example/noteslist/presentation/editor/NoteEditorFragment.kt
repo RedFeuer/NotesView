@@ -59,7 +59,7 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
     private val noteEditorViewModel : NoteEditorViewModel by activityViewModels {
         viewModelFactory
     }
-    private val args : NoteEditorFragmentArgs by navArgs()
+//    private val args : NoteEditorFragmentArgs by navArgs()
 
     companion object {
         private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
@@ -84,10 +84,10 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
             ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
         )
 
-        noteEditorViewModel.init(
-            note = args.note,
-            isEditMode = args.isEditMode
-        )
+//        noteEditorViewModel.init(
+//            note = args.note,
+//            isEditMode = args.isEditMode
+//        )
 
         composeView.setContent {
             MaterialTheme {
@@ -110,10 +110,13 @@ class NoteEditorFragment : Fragment(R.layout.fragment_note_editor) {
                     onSaveClick = {
                         if (noteEditorViewModel.saveNote()) {
                             editorHostViewModel.close()
-//                            closeEditor()
+                            noteEditorViewModel.reset()
                         }
                     },
-                    onCloseRequest = { editorHostViewModel.close() }
+                    onCloseRequest = {
+                        editorHostViewModel.close()
+                        noteEditorViewModel.reset()
+                    }
                 )
             }
         }
