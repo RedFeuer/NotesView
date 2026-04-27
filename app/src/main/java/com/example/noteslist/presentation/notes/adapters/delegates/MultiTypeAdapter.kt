@@ -8,7 +8,7 @@ import com.example.noteslist.presentation.notes.NoteListItem
 
 abstract class MultiTypeAdapter(
     diffUtilCallback: DiffUtil.ItemCallback<NoteListItem>,
-    private val delegates: List<AdapterDelegate>,
+    protected val delegates: List<AdapterDelegate>,
 ) : ListAdapter<NoteListItem, RecyclerView.ViewHolder>(diffUtilCallback) {
     /* находим индекс делегата, который подходит для текущего элемента списка */
     override fun getItemViewType(position: Int): Int {
@@ -31,13 +31,28 @@ abstract class MultiTypeAdapter(
         return delegates[viewType].onCreateViewHolder(parent)
     }
 
-    /* по известному ViewHolder и элементу списка привязываем данные нужному делегату */
-    override fun onBindViewHolder(
-        holder: RecyclerView.ViewHolder,
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder,
         position: Int
     ) {
         val item = getItem(position)
         val delegateIndex = holder.itemViewType
+
         delegates[delegateIndex].onBindViewHolder(holder, item)
+    }
+
+    /* по известному ViewHolder и элементу списка привязываем данные нужному делегату */
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads : MutableList<Any>,
+    ) {
+        val item = getItem(position)
+        val delegateIndex = holder.itemViewType
+
+        if (payloads.isEmpty()) {
+            delegates[delegateIndex].onBindViewHolder(holder, item)
+        } else {
+            delegates[delegateIndex].onBindViewHolder(holder, item, payloads)
+        }
     }
 }

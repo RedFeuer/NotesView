@@ -2,98 +2,197 @@ package com.example.noteslist.presentation.view
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.core.os.bundleOf
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import com.example.noteslist.R
 import com.example.noteslist.data.repositoryImpl.NotesRepositoryImpl
-import com.example.noteslist.presentation.editor.NoteEditorActivity
-import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
-import com.example.noteslist.presentation.notes.toNoteListItems
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.noteslist.presentation.editor.NoteEditorFragment
+import com.example.noteslist.presentation.editorhost.EditorDestination
+import com.example.noteslist.presentation.list.NotesListFragmentDirections
+import com.example.noteslist.presentation.viewModel.EditorHostViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 //тут будешь ваша активити
 class MainActivity : AppCompatActivity() {
-    /** Singleton репозитория для актуальности заметок */
+
     private val repository = NotesRepositoryImpl.instance
-    private lateinit var notesAdapter : NotesListAdapter
-    /** множество раскрытых стеков заметок, где идентификатор - id стека*/
-    private var expandedStackIds = mutableSetOf<String>()
+    private val editorHostViewMode : EditorHostViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        val rootView = findViewById<View>(R.id.main)
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        editorHostViewMode.destination
+            .onEach { destination -> renderEditorDestination(destination) }
+            .launchIn(lifecycleScope)
 
-        val recyclerViewNotes = findViewById<RecyclerView>(R.id.recyclerViewNotes)
-        recyclerViewNotes.layoutManager = LinearLayoutManager(this)
-        notesAdapter = NotesListAdapter(
-            onNoteClick = { note ->
-                startActivity(NoteEditorActivity.createEditIntent(this, note.uiId))
-            },
-            onNoteLongClick = { note ->
-                repository.toggleViewed(note.uiId)
-                renderNotes() // перерисовываем список, чтобы отобразилась прочитанной нужную заметку
-            },
-            isStackExpanded = { stackId ->
-                expandedStackIds.contains(stackId)
-            },
-            onStackExpandedChange = { stackId, isExpanded ->
-                if (isExpanded) {
-                    expandedStackIds.add(stackId) // добавляем в множество заметок
-                } else {
-                    expandedStackIds.remove(stackId) // убираем из множества заметок
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    when {
+                        isTwoPane() && isDetailEditorOpened() -> {
+//                            closeDetailEditor()
+                            editorHostViewMode.close()
+                        }
+                        !isTwoPane() && isEditorOpenedNavHost() -> {
+//                            popEditorFromNavHost()
+                            editorHostViewMode.close()
+                        }
+                        else -> {
+                            showExitConfirmationDialog()
+                        }
+                    }
                 }
             }
         )
-        recyclerViewNotes.adapter = notesAdapter
+    }
 
-        /* обработка нажатия по Floating Action Button добавления новой заметки */
-        val fabAddNote = findViewById<FloatingActionButton>(R.id.fabAddNote)
-        fabAddNote.setOnClickListener {
-            startActivity(NoteEditorActivity.createAddIntent(this))
-//            Toast.makeText(this, "Переход на экран создания заметки", Toast.LENGTH_SHORT).show()
+    private fun renderEditorDestination(destination : EditorDestination) {
+        if (isTwoPane()) {
+            renderTwoPaneEditor(destination)
         }
+        else {
+            renderSinglePaneEditor(destination)
+        }
+    }
 
-        /* обработка скрытия Floating Action Button добавления новой заметки при скролле
-        * и возвращения кнопки при окончании скролла*/
-        recyclerViewNotes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy != 0) {
-                    fabAddNote.hide()
+    /** граф навигации внутри портретного экрана */
+    private fun renderSinglePaneEditor(destination : EditorDestination) {
+        val navHost = supportFragmentManager.findFragmentById(R.id.navHostFragment)
+            as? NavHostFragment ?: return
+
+        /* находим на каком мы экране сейчас, чтобы относительно этого и destination строить навигацию между этими экранами */
+        val navController = navHost.navController
+        val currentDestinationId = navController.currentDestination?.id
+
+        when (destination) {
+            EditorDestination.Closed -> {
+                if (currentDestinationId == R.id.note_editor_fragment) {
+                    navController.popBackStack()
                 }
             }
 
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    /* post чтобы анимация корректнее отображалась при быстрых скроллах туда-сюда */
-                    fabAddNote.post { fabAddNote.show() }
+            EditorDestination.Create -> {
+                if (currentDestinationId != R.id.note_editor_fragment) {
+                    /* создание заметки */
+                    val direction = NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+                        note = null,
+                        isEditMode = false,
+                    )
+                    navController.navigate(direction)
                 }
             }
-        })
 
-        renderNotes()
+            is EditorDestination.Edit -> {
+                val note = repository.getNoteById(destination.noteUiId) ?: return
+
+                if (currentDestinationId != R.id.note_editor_fragment) {
+                    val direction = NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
+                        note = note,
+                        isEditMode = true,
+                    )
+                    navController.navigate(direction)
+                }
+            }
+        }
     }
 
-    /* при возврате к Activity после другой Activity. Например, после NoteEditorActivity*/
-    override fun onResume() {
-        super.onResume()
-        renderNotes()
+    /** граф навигации внутри ландшафтного экрана */
+    private fun renderTwoPaneEditor(destination: EditorDestination) {
+        when (destination) {
+            EditorDestination.Closed -> {
+                val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
+                if (fragment != null) {
+                    supportFragmentManager.commit { remove(fragment) }
+                }
+            }
+
+            EditorDestination.Create -> {
+                val args = bundleOf(
+                    "note" to null,
+                    "isEditMode" to false,
+                )
+
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    /* в контейнер detail_fragment_container кладем NoteEditorFragment  */
+                    replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
+                }
+            }
+
+            is EditorDestination.Edit -> {
+                val note = repository.getNoteById(destination.noteUiId) ?: return
+
+                val args = bundleOf(
+                    "note" to note,
+                    "isEditMode" to true,
+                )
+
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    replace(R.id.detail_fragment_container, NoteEditorFragment::class.java, args)
+                }
+            }
+        }
     }
 
-    /** прикрепление списка заметок к экрану приложения */
-    private fun renderNotes() {
-        notesAdapter.submitList(repository.getNotes().toNoteListItems())
+    /** проверяем, есть ли в текущем layout правый контейнер detail_fragment_container
+     * по сути проверка, что мы в ландшафтном режиме ориентации*/
+    private fun isTwoPane() : Boolean {
+        return findViewById<View?>(R.id.detail_fragment_container) != null
+    }
+
+    private fun isDetailEditorOpened() : Boolean {
+        val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
+        return fragment is NoteEditorFragment
+    }
+
+    private fun closeDetailEditor() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
+            ?: return
+
+        supportFragmentManager.beginTransaction()
+            .remove(fragment)
+            .commit()
+    }
+
+    private fun isEditorOpenedNavHost() : Boolean {
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
+                ?: return false
+
+        val currentDestinationId = navHost.navController.currentDestination?.id
+        return currentDestinationId == R.id.note_editor_fragment
+    }
+
+    private fun popEditorFromNavHost() {
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
+                ?: return
+
+        navHost.navController.popBackStack()
+    }
+
+    private fun showExitConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Подтверждение выхода")
+            .setMessage("Вы точно хотите выйти?")
+            .setNegativeButton("Нет", null)
+            .setPositiveButton("Да") { _, _ ->
+                finish()
+            }
+            .show()
     }
 }

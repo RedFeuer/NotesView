@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.notes.NoteListItem
+import com.example.noteslist.presentation.notes.util.NoteListItemPayload
 import com.example.noteslist.presentation.view.NoteStackView
 
 class NoteStackViewHolder(
@@ -18,6 +19,10 @@ class NoteStackViewHolder(
     ) {
         noteStackView.setOnExpandedChange(onExpandedChange)
         noteStackView.submitNotes(item.notes, isExpanded)
+    }
+
+    fun bindPayload(payload: NoteListItemPayload.StackNoteChanged) {
+        noteStackView.updateNote(payload.newNote)
     }
 
     companion object {

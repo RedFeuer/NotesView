@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.presentation.notes.NoteListItem
 import com.example.noteslist.presentation.notes.holders.NoteStackViewHolder
+import com.example.noteslist.presentation.notes.util.NoteListItemPayload
 
 class NoteStackAdapterDelegate(
     private val onNoteClick : (Note) -> Unit,
@@ -33,5 +34,25 @@ class NoteStackAdapterDelegate(
                 onStackExpandedChange(noteStackItem.id, expanded)
             }
         )
+    }
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: NoteListItem,
+        payloads: List<Any>
+    ) {
+        val noteStackItem = item as NoteListItem.NoteStackItem
+        val stackViewHolder = holder as NoteStackViewHolder
+
+        val stackNoteChangedPayload = payloads
+            .filterIsInstance<NoteListItemPayload.StackNoteChanged>()
+            .firstOrNull()
+
+        if (stackNoteChangedPayload != null) {
+            stackViewHolder.bindPayload(stackNoteChangedPayload)
+            return
+        }
+
+        onBindViewHolder(holder, item)
     }
 }
