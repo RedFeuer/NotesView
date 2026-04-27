@@ -41,7 +41,6 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         private const val NOTE_EDITOR_RESULT_KEY = "note_editor_result"
     }
 
-    /** Прицепляем фрагмент к MainActivity */
     override fun onAttach(context: Context) {
         (context as MainActivity)
             .activityComponent
