@@ -1,21 +1,25 @@
 package com.example.noteslist.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.repository.NotesRepository
 import com.example.noteslist.domain.useCase.CreateNoteUseCase
+import com.example.noteslist.domain.useCase.GetNoteByIdUseCase
 import com.example.noteslist.domain.useCase.UpdateNoteUseCase
 import com.example.noteslist.presentation.state.NoteEditorUiState
 import com.example.noteslist.presentation.view.NoteMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 
 class NoteEditorViewModel @Inject constructor(
     private val updateNoteUseCase: UpdateNoteUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
+    private val getNoteByIdUseCase: GetNoteByIdUseCase,
     private val noteMapper : NoteMapper,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(NoteEditorUiState())
@@ -23,34 +27,44 @@ class NoteEditorViewModel @Inject constructor(
 
     /** исходная заметка для режима редактирования */
     private var sourceNote : Note? = null
-    private var isInitialized : Boolean = false
 
-    fun init(note : Note?, isEditMode : Boolean) {
-        if (isInitialized) return
-        isInitialized = true
-
-        sourceNote = note
-
-        val title = note?.title.orEmpty()
-        val description = note?.description.orEmpty()
-        val isImportant = note?.isImportant ?: false
-        val isViewed = note?.isViewed ?: false
-        val createdAtText = note?.createdAtMillis?.let {
-            noteMapper.createdAtFormatter.format(Date(it))
-        }.orEmpty()
-
+    fun startCreate() {
+        sourceNote = null
         _uiState.value = NoteEditorUiState(
-            title = title,
-            description = description,
-            isImportant = isImportant,
-            isViewed = isViewed,
-            createdAtText = createdAtText,
-            isEditMode = isEditMode,
-            initialTitle = title,
-            initialDescription = description,
-            initialIsImportant = isImportant,
-            initialIsViewed = isViewed,
+            isEditMode = false,
         )
+    }
+
+    fun startEdit(noteUiId : String) {
+        viewModelScope.launch {
+            val note = getNoteByIdUseCase(noteUiId) ?: return@launch
+
+            sourceNote = note
+
+            val title = note.title ?: ""
+            val description = note.description.orEmpty()
+            val isImportant = note.isImportant
+            val isViewed = note.isViewed
+            val createdAtText = noteMapper.createdAtFormatter.format(Date(note.createdAtMillis))
+
+            _uiState.value = NoteEditorUiState(
+                title = title,
+                description = description,
+                isImportant = isImportant,
+                isViewed = isViewed,
+                createdAtText = createdAtText,
+                isEditMode = true,
+                initialTitle = title,
+                initialDescription = description,
+                initialIsImportant = isImportant,
+                initialIsViewed = isViewed,
+            )
+        }
+    }
+
+    fun reset() {
+        sourceNote = null
+        _uiState.value = NoteEditorUiState()
     }
 
     fun onTitleChanged(newTitle : String) {
