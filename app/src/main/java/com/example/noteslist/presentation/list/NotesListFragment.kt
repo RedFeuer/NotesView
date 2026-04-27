@@ -142,6 +142,11 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 notesListViewModel.uiState.collect { state ->
+                    /* берем сохраненный запрос из NotesListViewModel и сохраняем в SearchView */
+                    if (searchViewNotes.query.toString() != state.searchQuery) {
+                        searchViewNotes.setQuery(state.searchQuery, false)
+                    }
+
                     notesAdapter.submitList(state.items)
                 }
             }
