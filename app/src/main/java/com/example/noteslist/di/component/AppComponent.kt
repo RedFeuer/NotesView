@@ -1,6 +1,7 @@
 package com.example.noteslist.di.component
 
 import android.app.Application
+import com.example.noteslist.di.coroutine.module.CoroutineModule
 import com.example.noteslist.di.module.RepositoryModule
 import com.example.noteslist.di.module.SubcomponentsModule
 import com.example.noteslist.di.module.ViewModelModule
@@ -15,6 +16,7 @@ import dagger.Component
         RepositoryModule::class,
         ViewModelModule::class,
         SubcomponentsModule::class,
+        CoroutineModule::class,
     ]
 )
 interface AppComponent {

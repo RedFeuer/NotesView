@@ -62,11 +62,9 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     when {
                         isTwoPane() && isDetailEditorOpened() -> {
-//                            closeDetailEditor()
                             editorHostViewModel.close()
                         }
                         !isTwoPane() && isEditorOpenedNavHost() -> {
-//                            popEditorFromNavHost()
                             editorHostViewModel.close()
                         }
                         else -> {
@@ -78,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun renderEditorDestination(destination : EditorDestination) {
+    private suspend fun renderEditorDestination(destination : EditorDestination) {
         if (isTwoPane()) {
             renderTwoPaneEditor(destination)
         }
@@ -88,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** граф навигации внутри портретного экрана */
-    private fun renderSinglePaneEditor(destination : EditorDestination) {
+    private suspend fun renderSinglePaneEditor(destination : EditorDestination) {
         val navHost = supportFragmentManager.findFragmentById(R.id.navHostFragment)
             as? NavHostFragment ?: return
 
@@ -129,7 +127,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** граф навигации внутри ландшафтного экрана */
-    private fun renderTwoPaneEditor(destination: EditorDestination) {
+    private suspend fun renderTwoPaneEditor(destination: EditorDestination) {
         when (destination) {
             EditorDestination.Closed -> {
                 val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
@@ -178,15 +176,6 @@ class MainActivity : AppCompatActivity() {
         return fragment is NoteEditorFragment
     }
 
-    private fun closeDetailEditor() {
-        val fragment = supportFragmentManager.findFragmentById(R.id.detail_fragment_container)
-            ?: return
-
-        supportFragmentManager.beginTransaction()
-            .remove(fragment)
-            .commit()
-    }
-
     private fun isEditorOpenedNavHost() : Boolean {
         val navHost =
             supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
@@ -194,14 +183,6 @@ class MainActivity : AppCompatActivity() {
 
         val currentDestinationId = navHost.navController.currentDestination?.id
         return currentDestinationId == R.id.note_editor_fragment
-    }
-
-    private fun popEditorFromNavHost() {
-        val navHost =
-            supportFragmentManager.findFragmentById(R.id.navHostFragment) as? NavHostFragment
-                ?: return
-
-        navHost.navController.popBackStack()
     }
 
     private fun showExitConfirmationDialog() {
