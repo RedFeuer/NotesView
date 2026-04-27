@@ -22,6 +22,7 @@ import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationS
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_START_SCALE
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.ITEM_START_DELAY_MS
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimation
+import kotlin.math.exp
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
@@ -59,6 +60,13 @@ class NoteStackView @JvmOverloads constructor(
     private val stackInterpolator by lazy {
         PathInterpolator(0.4f, 0.1f, 0.2f, 1f)
     }
+
+    /** Callback клика по заметке (редактирования заметки)*/
+    private var onNoteClick : ((Note) -> Unit)? = null
+    /** Callback долгого клика по заметке (отметки заметки прочитанной) */
+    private var onNoteLongClick : ((Note) -> Unit)? = null
+    /** Callback клика по стеку (раскрытия стека заметок) */
+    private var onExpandedChange : ((Boolean) -> Unit)? = null
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
@@ -285,9 +293,10 @@ class NoteStackView @JvmOverloads constructor(
     }
 
     /* метод для передачи новых заметок в NoteStackView и обновления отображения */
-    fun submitNotes(newNotes: List<Note>) {
+    fun submitNotes(newNotes: List<Note>, expanded : Boolean) {
         notes.clear()
         notes += newNotes.sortedByDescending { it.createdAtMillis } // сортируем заметки по времени создания, самые свежие сверху
+        isExpanded = expanded
         rebuildChildren() // обновляем отображение заметок в стеке
     }
 
@@ -296,7 +305,12 @@ class NoteStackView @JvmOverloads constructor(
     private fun setExpanded(expanded: Boolean) {
         if (expanded == isExpanded) return // если состояние не изменилось, ничего не делаем
         isExpanded = expanded
+        onExpandedChange?.invoke(expanded)
         rebuildChildren() // обновляем отображение заметок в стеке при изменении состояния
+    }
+
+    fun setOnExpandedChange(onExpandedChange : (Boolean) -> Unit) {
+        this.onExpandedChange = onExpandedChange
     }
 
     /* метод для перерисовки дочерних элементов NoteStackView при изменении данных или состояния стека */
@@ -343,21 +357,34 @@ class NoteStackView @JvmOverloads constructor(
 
             bind(noteUi) // привязываем данные заметки к NoteView: NoteUi -> NoteView
 
-            /* в свернутом состоянии кликабелен сам стек, а не отдельные заметки
-            в развернутом состоянии кликабельность и фокус у каждой заметки,
-            чтобы можно было взаимодействовать с ними индивидуально*/
+            /* при обычном клике - редактирование заметки
+            * при долгом клике - отмечаем заметку помеченной*/
             isClickable = isExpanded
             isFocusable = isExpanded
 
             if (isExpanded) {
                 setOnClickListener {
-                    markNoteAsViewed(note)
+                    onNoteClick?.invoke(note)
+                }
+
+                setOnLongClickListener {
+                    onNoteLongClick?.invoke(note)
+                    true
                 }
             }
             else {
                 setOnClickListener(null) // отключаем клик для заметок в свернутом состоянии
+                setOnLongClickListener(null)
             }
         }
+    }
+
+    fun setNoteActions(
+        onNoteClick : (Note) -> Unit,
+        onNoteLongClick : (Note) -> Unit,
+    ) {
+        this.onNoteClick = onNoteClick
+        this.onNoteLongClick = onNoteLongClick
     }
 
     /* обработка клика по стеку, если он свернут */

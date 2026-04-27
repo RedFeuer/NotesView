@@ -8,6 +8,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.NotesList">
+        <!-- экран добавление/изменения заметки -->
+        <activity android:name=".presentation.editor.NoteEditorActivity" />
+
+        <!-- экран списка заметок -->
         <activity
             android:name=".presentation.view.MainActivity"
             android:exported="true">

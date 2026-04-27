@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">NotesList</string>
     <string name="stack_collapse">Свернуть</string>
+    <string name="add_note">Добавить заметку</string>
 </resources>
