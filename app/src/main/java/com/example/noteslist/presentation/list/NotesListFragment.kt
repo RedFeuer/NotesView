@@ -3,6 +3,7 @@ package com.example.noteslist.presentation.list
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
+import com.example.noteslist.presentation.settings.SettingsBottomSheetFragment
 import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
@@ -44,6 +46,9 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     /** виджет поиска заметок */
     private lateinit var searchViewNotes : SearchView
 
+    /** кнопка настроек */
+    private lateinit var buttonSettings : ImageButton
+
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
     private lateinit var recyclerViewNotes : RecyclerView
@@ -71,6 +76,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         recyclerViewNotes = view.findViewById<RecyclerView>(R.id.recycler_view_notes)
         fabAddNote = view.findViewById<FloatingActionButton>(R.id.fab_add_note)
         searchViewNotes = view.findViewById<SearchView>(R.id.search_view_notes)
+        buttonSettings = view.findViewById(R.id.button_settings)
 
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
@@ -103,6 +109,11 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
                 }
             }
         )
+
+        buttonSettings.setOnClickListener {
+            SettingsBottomSheetFragment()
+                .show(parentFragmentManager, SettingsBottomSheetFragment.TAG)
+        }
 
         recyclerViewNotes.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewNotes.adapter = notesAdapter
@@ -147,6 +158,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
                         searchViewNotes.setQuery(state.searchQuery, false)
                     }
 
+                    notesAdapter.submitStackSettings(state.stackSettings)
                     notesAdapter.submitList(state.items)
                 }
             }
