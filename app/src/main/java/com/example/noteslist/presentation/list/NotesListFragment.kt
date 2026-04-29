@@ -7,6 +7,7 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -19,6 +20,7 @@ import com.example.noteslist.R
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
 import com.example.noteslist.presentation.settings.SettingsBottomSheetFragment
 import com.example.noteslist.presentation.view.MainActivity
+import com.example.noteslist.presentation.view.ShimmerNotesListView
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
 import com.example.noteslist.presentation.viewModel.NotesListViewModel
@@ -49,6 +51,9 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
     /** кнопка настроек */
     private lateinit var buttonSettings : ImageButton
 
+    /** шиммер */
+    private lateinit var shimmerNotes : ShimmerNotesListView
+
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
     private lateinit var recyclerViewNotes : RecyclerView
@@ -77,6 +82,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         fabAddNote = view.findViewById<FloatingActionButton>(R.id.fab_add_note)
         searchViewNotes = view.findViewById<SearchView>(R.id.search_view_notes)
         buttonSettings = view.findViewById(R.id.button_settings)
+        shimmerNotes = view.findViewById(R.id.shimmer_notes)
 
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
@@ -153,13 +159,21 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 notesListViewModel.uiState.collect { state ->
+                    val isShimmerVisible = state.isInitialShimmerVisible
+
+                    shimmerNotes.isVisible = isShimmerVisible
+                    recyclerViewNotes.isVisible = !isShimmerVisible
+                    fabAddNote.isVisible = !isShimmerVisible
+
                     /* берем сохраненный запрос из NotesListViewModel и сохраняем в SearchView */
                     if (searchViewNotes.query.toString() != state.searchQuery) {
                         searchViewNotes.setQuery(state.searchQuery, false)
                     }
 
-                    notesAdapter.submitStackSettings(state.stackSettings)
-                    notesAdapter.submitList(state.items)
+                    if (!isShimmerVisible) {
+                        notesAdapter.submitStackSettings(state.stackSettings)
+                        notesAdapter.submitList(state.items)
+                    }
                 }
             }
         }
