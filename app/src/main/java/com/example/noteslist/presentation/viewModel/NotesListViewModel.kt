@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.noteslist.di.coroutine.qualifier.DefaultDispatcher
 import com.example.noteslist.domain.domainModel.Note
 import com.example.noteslist.domain.useCase.GetNotesUseCase
+import com.example.noteslist.domain.useCase.ObserveStackSettingsUseCase
 import com.example.noteslist.domain.useCase.ToggleNoteViewedUseCase
 import com.example.noteslist.presentation.notes.toNoteListItems
 import com.example.noteslist.presentation.state.NotesListUiState
@@ -25,7 +26,8 @@ import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 class NotesListViewModel @Inject constructor(
-    private val getNotesUseCase: GetNotesUseCase,
+    getNotesUseCase: GetNotesUseCase,
+    observeStackSettingsUseCase: ObserveStackSettingsUseCase,
     private val toggleNoteViewedUseCase: ToggleNoteViewedUseCase,
     @DefaultDispatcher private val defaultCoroutineDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -49,7 +51,8 @@ class NotesListViewModel @Inject constructor(
         getNotesUseCase(),
         expandedStackIds,
         searchQuery,
-    ) { notes, expandedStackIds, query ->
+        observeStackSettingsUseCase(),
+    ) { notes, expandedStackIds, query, stackSettings ->
         val filteredNotes = filterNotesByTitle(
             notes = notes,
             query = query,
@@ -59,6 +62,7 @@ class NotesListViewModel @Inject constructor(
             items = filteredNotes.toNoteListItems(),
             expandedStackIds = expandedStackIds,
             searchQuery = query,
+            stackSettings = stackSettings,
         )
     }
         .flowOn(defaultCoroutineDispatcher)
