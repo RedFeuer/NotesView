@@ -1,10 +1,11 @@
-package com.example.noteslist.domain.provider
+package com.example.noteslist.data.demo
 
+import com.example.noteslist.domain.demo.DemoNotesSource
 import com.example.noteslist.domain.domainModel.Note
 import javax.inject.Inject
 
-class DemoNotesProvider @Inject constructor() {
-    fun create() : List<Note> {
+class DemoNotesSourceImpl @Inject constructor() : DemoNotesSource {
+    override fun createDemoNotes(): List<Note> {
         return listOf(
             Note(
                 title = "Т-Академия",
@@ -26,14 +27,14 @@ class DemoNotesProvider @Inject constructor() {
             ),
             /* прошлые сутки, чтобы проверить еще один стек */
             Note(
-                title = "Резюме",
-//                isImportant = true,
-                description = "Добавить новый проект с BLE в резюме",
+                title = "НИР",
+                description = "Согласовать задачи на семестр с научным руководителем",
                 createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
             ),
             Note(
-                title = "НИР",
-                description = "Согласовать задачи на семестр с научным руководителем",
+                title = "Резюме",
+//                isImportant = true,
+                description = "Добавить новый проект с BLE в резюме",
                 createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
             )
         )
