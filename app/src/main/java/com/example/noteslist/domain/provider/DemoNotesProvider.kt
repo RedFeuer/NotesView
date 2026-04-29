@@ -1,4 +1,4 @@
-package com.example.noteslist.data.provider
+package com.example.noteslist.domain.provider
 
 import com.example.noteslist.domain.domainModel.Note
 import javax.inject.Inject
