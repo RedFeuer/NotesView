@@ -75,11 +75,11 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
-                noteEditorViewModel.startEdit(note.uiId)
-                editorHostViewModel.openEdit(note.uiId)
+                noteEditorViewModel.startEdit(note.id)
+                editorHostViewModel.openEdit(note.id)
             },
             onNoteLongClick = { note ->
-                notesListViewModel.onNoteLongClick(note.uiId)
+                notesListViewModel.onNoteLongClick(note.id)
             },
             isStackExpanded = { stackId ->
                 notesListViewModel.uiState.value.expandedStackIds.contains(stackId)

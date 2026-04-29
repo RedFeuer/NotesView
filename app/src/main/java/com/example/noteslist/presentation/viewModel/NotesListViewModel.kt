@@ -76,10 +76,10 @@ class NotesListViewModel @Inject constructor(
     }
 
     /** обработка длинного нажатия */
-    fun onNoteLongClick(noteUiId : String) {
+    fun onNoteLongClick(noteId : Long) {
         if (togglingViewedJob?.isActive == true) return
 
-        togglingViewedJob = toggleNoteViewedUseCase(noteUiId)
+        togglingViewedJob = toggleNoteViewedUseCase(noteId)
     }
 
     /** меняем expandedStackIds */

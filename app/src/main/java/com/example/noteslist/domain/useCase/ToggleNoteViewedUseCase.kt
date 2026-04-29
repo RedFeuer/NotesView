@@ -11,9 +11,9 @@ class ToggleNoteViewedUseCase @Inject constructor(
     private val notesRepository: NotesRepository,
     @ApplicationCoroutineScope private val applicationCoroutineScope: CoroutineScope
 ) {
-    operator fun invoke(noteUiId : String) : Job {
+    operator fun invoke(noteId : Long) : Job {
         return applicationCoroutineScope.launch {
-            notesRepository.toggleViewed(noteUiId)
+            notesRepository.toggleViewed(noteId)
         }
     }
 }

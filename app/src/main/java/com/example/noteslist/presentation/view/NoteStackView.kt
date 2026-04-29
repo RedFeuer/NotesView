@@ -301,27 +301,27 @@ class NoteStackView @JvmOverloads constructor(
     }
 
     fun updateNote(updatedNote : Note) {
-        val noteIndex = notes.indexOfFirst { it.uiId == updatedNote.uiId }
+        val noteIndex = notes.indexOfFirst { it.id == updatedNote.id }
         if (noteIndex == -1) return
 
         notes[noteIndex] = updatedNote
 
-        val childIndex = findChildIndexForNote(updatedNote.uiId) ?: return
+        val childIndex = findChildIndexForNote(updatedNote.id) ?: return
         val child = getChildAt(childIndex) as? NoteView ?: return
 
         child.bind(noteMapper.mapDomainModelToUi(updatedNote))
     }
 
     /* ищем какой дочерний NoteView соответствует заметке */
-    private fun findChildIndexForNote(noteUiId : String) : Int? {
+    private fun findChildIndexForNote(noteId : Long) : Int? {
         return if (isExpanded) {
             /* развернутый стек */
-            val index = notes.indexOfFirst { it.uiId == noteUiId }
+            val index = notes.indexOfFirst { it.id == noteId }
             if (index == -1) null else index
         } else {
             /* свернутый стек */
             val visibleNotes = notes.take(stackMaxSize)
-            val visibleIndex = visibleNotes.indexOfFirst { it.uiId == noteUiId }
+            val visibleIndex = visibleNotes.indexOfFirst { it.id == noteId }
             if (visibleIndex == -1) {
                 /* невидимую карточку не обновляем */
                 null

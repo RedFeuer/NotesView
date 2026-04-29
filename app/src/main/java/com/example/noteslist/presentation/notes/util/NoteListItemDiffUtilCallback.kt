@@ -45,7 +45,7 @@ class NoteListItemDiffUtilCallback : DiffUtil.ItemCallback<NoteListItem>() {
 
         /* проверяем, что состав заметок тот же и порядок тот же */
         val sameNoteOrder = oldItem.notes.zip(newItem.notes).all { (oldNote, newNote) ->
-            oldNote.uiId == newNote.uiId
+            oldNote.id == newNote.id
         }
         if (!sameNoteOrder) return null
 
@@ -62,7 +62,7 @@ class NoteListItemDiffUtilCallback : DiffUtil.ItemCallback<NoteListItem>() {
         val (_, newChangedNote) = changedPairs.single()
 
         return NoteListItemPayload.StackNoteChanged(
-            noteUiId = newChangedNote.uiId,
+            noteId = newChangedNote.id,
             newNote = newChangedNote
         )
     }
