@@ -8,4 +8,5 @@ data class NotesListUiState(
     val expandedStackIds : Set<String> = emptySet(),
     val searchQuery : String = "",
     val stackSettings: StackSettings = StackSettings(),
+    val isInitialShimmerVisible : Boolean = false,
 )
