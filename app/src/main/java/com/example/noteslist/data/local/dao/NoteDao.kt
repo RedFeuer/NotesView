@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY createdAtMillis DESC")
-    fun getNotes() : Flow<List<Note>>
+    fun getNotes() : Flow<List<NoteEntity>>
 
     @Query("SELECT * FROM notes WHERE id = :id LIMIT 1")
     suspend fun getNoteById(id : Long) : NoteEntity?
