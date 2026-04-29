@@ -7,11 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,7 +24,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.noteslist.domain.settings.StackSettings
 import com.example.noteslist.presentation.state.SettingsUiState
@@ -32,10 +34,11 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 
 class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
-    @Inject
-    lateinit var viewModelFactory : ViewModelProvider.Factory
 
-    private val viewModel : SettingsViewModel by viewModels {
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private val viewModel: SettingsViewModel by viewModels {
         viewModelFactory
     }
 
@@ -52,22 +55,35 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+
             setViewCompositionStrategy(
                 ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
             )
 
             setContent {
                 MaterialTheme {
-                    val uiState by viewModel.uiState.collectAsState()
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 280.dp)
+                            .navigationBarsPadding(),
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        val uiState by viewModel.uiState.collectAsState()
 
-                    SettingsBottomSheetContent(
-                        uiState = uiState,
-                        onStackSpacingChanged = { newSpacing -> viewModel.onStackSpacingChanged(newSpacing) },
-                        onStackMaxVisibleChanged = { newCount -> viewModel.onStackMaxVisibleChanged(newCount) }
-                    )
+                        SettingsBottomSheetContent(
+                            uiState = uiState,
+                            onStackSpacingChanged = viewModel::onStackSpacingChanged,
+                            onStackMaxVisibleChanged = viewModel::onStackMaxVisibleChanged,
+                        )
+                    }
                 }
             }
         }
