@@ -3,6 +3,7 @@ package com.example.noteslist.di.component
 import android.app.Application
 import com.example.noteslist.di.NotesApp
 import com.example.noteslist.di.coroutine.module.CoroutineModule
+import com.example.noteslist.di.module.AppStartupModule
 import com.example.noteslist.di.module.DataStoreModule
 import com.example.noteslist.di.module.DatabaseModule
 import com.example.noteslist.di.module.DemoNotesModule
@@ -27,7 +28,7 @@ import dagger.Component
         DemoNotesModule::class,
         DataStoreModule::class,
         SettingsModule::class,
-        AppStartupRepository::class,
+        AppStartupModule::class,
     ]
 )
 interface AppComponent {
