@@ -12,6 +12,7 @@ import com.example.noteslist.di.module.SubcomponentsModule
 import com.example.noteslist.di.module.ViewModelModule
 import com.example.noteslist.di.scope.AppScope
 import com.example.noteslist.di.subcomponent.MainActivityComponent
+import com.example.noteslist.domain.repository.AppStartupRepository
 import dagger.BindsInstance
 import dagger.Component
 
@@ -26,6 +27,7 @@ import dagger.Component
         DemoNotesModule::class,
         DataStoreModule::class,
         SettingsModule::class,
+        AppStartupRepository::class,
     ]
 )
 interface AppComponent {
