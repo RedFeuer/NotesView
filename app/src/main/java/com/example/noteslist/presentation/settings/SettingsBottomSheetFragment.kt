@@ -1,17 +1,19 @@
 package com.example.noteslist.presentation.settings
 
+import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -29,6 +31,8 @@ import com.example.noteslist.domain.settings.StackSettings
 import com.example.noteslist.presentation.state.SettingsUiState
 import com.example.noteslist.presentation.view.MainActivity
 import com.example.noteslist.presentation.viewModel.SettingsViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -52,12 +56,10 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
         super.onAttach(context)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = BottomSheetDialog(requireContext())
+
+        val composeView = ComposeView(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -69,15 +71,16 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
 
             setContent {
                 MaterialTheme {
+                    val uiState by viewModel.uiState.collectAsState()
+
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .defaultMinSize(minHeight = 280.dp)
+                            .wrapContentHeight()
+                            .background(MaterialTheme.colorScheme.surface)
                             .navigationBarsPadding(),
                         color = MaterialTheme.colorScheme.surface,
                     ) {
-                        val uiState by viewModel.uiState.collectAsState()
-
                         SettingsBottomSheetContent(
                             uiState = uiState,
                             onStackSpacingChanged = viewModel::onStackSpacingChanged,
@@ -87,6 +90,31 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+
+        dialog.setContentView(composeView)
+
+        dialog.setOnShowListener { shownDialog ->
+            val bottomSheetDialog = shownDialog as BottomSheetDialog
+
+            val bottomSheet = bottomSheetDialog
+                .findViewById<FrameLayout>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            bottomSheet?.let { sheet ->
+                sheet.setBackgroundColor(Color.WHITE)
+
+                sheet.layoutParams = sheet.layoutParams.apply {
+                    height = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+
+                val behavior = BottomSheetBehavior.from(sheet)
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.skipCollapsed = true
+            }
+        }
+
+        return dialog
     }
 
     companion object {
