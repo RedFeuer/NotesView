@@ -3,6 +3,7 @@ package com.example.noteslist.di.component
 import android.app.Application
 import com.example.noteslist.di.coroutine.module.CoroutineModule
 import com.example.noteslist.di.module.DatabaseModule
+import com.example.noteslist.di.module.DemoNotesModule
 import com.example.noteslist.di.module.RepositoryModule
 import com.example.noteslist.di.module.SubcomponentsModule
 import com.example.noteslist.di.module.ViewModelModule
@@ -19,10 +20,13 @@ import dagger.Component
         SubcomponentsModule::class,
         CoroutineModule::class,
         DatabaseModule::class,
+        DemoNotesModule::class,
     ]
 )
 interface AppComponent {
     fun mainActivityComponentFactory() : MainActivityComponent.Factory
+
+
 
     @Component.Factory
     interface Factory{
