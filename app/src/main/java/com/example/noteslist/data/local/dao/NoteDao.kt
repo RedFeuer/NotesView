@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
+    /** возвращает отсортированный список */
     @Query("SELECT * FROM notes ORDER BY createdAtMillis DESC")
     fun getNotes() : Flow<List<NoteEntity>>
 
