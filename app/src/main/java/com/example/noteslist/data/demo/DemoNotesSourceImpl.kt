@@ -8,33 +8,54 @@ class DemoNotesSourceImpl @Inject constructor() : DemoNotesSource {
     override fun createDemoNotes(): List<Note> {
         return listOf(
             Note(
-                title = "Т-Академия",
+                title = "Важная заметка 1",
                 isImportant = true,
-                description = "Выполнить задание 3",
+                description = "Текст важной заметки",
             ),
             Note(
-                title = "Работа",
+                title = "Важная заметка 2",
                 isImportant = true,
-                description = "Пройти испытательный срок"
+                description = "Текст важной заметки"
             ),
             Note(
-                title = "Безопасность операционных систем",
-                description = "Отмечать неточности в книге преподавателя и писать ему, чтобы он их исправлял"
+                title = "Заметка 1",
+                description = "Текст заметки"
             ),
             Note(
-                title = "Сервис",
-                description = "Оплатить подписку",
+                title = "Заметка 2",
+                description = "Текст заметки",
+            ),
+            Note(
+                title = "Заметка 3",
+                description = "Текст заметки",
+            ),
+            Note(
+                title = "Заметка 4",
+                description = "Текст заметки",
+            ),
+            Note(
+                title = "Заметка 5",
+                description = "Текст заметки",
             ),
             /* прошлые сутки, чтобы проверить еще один стек */
             Note(
-                title = "НИР",
+                title = "Вчерашняя заметка 1",
                 description = "Согласовать задачи на семестр с научным руководителем",
                 createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
             ),
             Note(
-                title = "Резюме",
-//                isImportant = true,
-                description = "Добавить новый проект с BLE в резюме",
+                title = "Вчерашняя заметка 2",
+                description = "Согласовать задачи на семестр с научным руководителем",
+                createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
+            ),
+            Note(
+                title = "Вчерашняя заметка 3",
+                description = "Согласовать задачи на семестр с научным руководителем",
+                createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
+            ),
+            Note(
+                title = "Вчерашняя заметка 4",
+                description = "Согласовать задачи на семестр с научным руководителем",
                 createdAtMillis = System.currentTimeMillis() - (24*60*60*1000)
             )
         )
