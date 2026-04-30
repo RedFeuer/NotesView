@@ -13,7 +13,6 @@ import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
@@ -415,6 +414,7 @@ class NoteView @JvmOverloads constructor(
 
         /* текст */
         updateTitleTextPosition()
+        updateTitleFadeState()
         updateCreatedAtTextPosition()
 
         /* иконки */
@@ -538,8 +538,31 @@ class NoteView @JvmOverloads constructor(
 
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
+        if (titleTextWidthPx <= 0) return
 
-        canvas.drawText(text, titleTextStartX, titleTextBaselineY, titleTextPaint)
+        canvas.save()
+
+        /* не даем заголовку выйти за пределы */
+        canvas.clipRect(titleClipRect)
+
+        canvas.drawText(
+            text,
+            titleTextStartX,
+            titleTextBaselineY,
+            titleTextPaint,
+        )
+
+        if (titleFadeVisible) {
+            canvas.drawRect(
+                titleFadeLeft,
+                titleFadeTop,
+                titleFadeRight,
+                titleFadeBottom,
+                titleFadePaint,
+            )
+        }
+
+        canvas.restore()
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
