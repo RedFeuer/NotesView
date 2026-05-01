@@ -20,7 +20,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Настройки"
+        android:contentDescription="@string/stack_settings"
         android:src="@android:drawable/ic_menu_manage"
         app:layout_constraintTop_toTopOf="@id/search_view_notes"
         app:layout_constraintBottom_toBottomOf="@id/search_view_notes"
