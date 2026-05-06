@@ -13,7 +13,6 @@ import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
@@ -30,6 +29,7 @@ class NoteView @JvmOverloads constructor(
     var title: String? = null
         set(value) {
             field = value // backing field
+            updateTitleFadeState()
             invalidate()
         }
     /* координаты Title */
@@ -39,6 +39,7 @@ class NoteView @JvmOverloads constructor(
         set(value) {
             field = value
             updateTitleTextPosition()
+            updateTitleFadeState()
             invalidate()
         }
     var isViewed: Boolean = false
@@ -46,6 +47,7 @@ class NoteView @JvmOverloads constructor(
             field = value
             initStyle()
             updateSize()
+            updateTitleFadeState()
             updateDescriptionFadeShader()
             invalidate()
         }
@@ -57,10 +59,15 @@ class NoteView @JvmOverloads constructor(
             updateDescriptionFadeShader()
             invalidate()
         }
-    /* координаты описания */
+    /** ширина области заголовка */
+    private var titleTextWidthPx : Int = 0
+    /** область отрисовки заголовка */
+    private val titleClipRect = RectF()
+
+    /** координаты описания */
     private var descriptionTextStartX = 0f
     private var descriptionTextStartY = 0f
-    /* область отрисовки текста description */
+    /** область отрисовки текста description */
     private var descriptionClipRect = RectF()
 
     /* иконка-галочка для просмотренной заметки */
@@ -133,12 +140,20 @@ class NoteView @JvmOverloads constructor(
         isAntiAlias = true
         isSubpixelText = true
     }
-    /* параметры для фейда описания, если текста больше 2 строк */
+    /** параметры для фейда заголовка */
+    private var titleFadeLeft = 0f
+    private var titleFadeRight = 0f
+    private var titleFadeTop = 0f
+    private var titleFadeBottom = 0f
+    /** флаг видимости фейда заголовка */
+    private var titleFadeVisible = false
+
+    /** параметры для фейда описания, если текста больше 2 строк */
     private var descriptionFadeLeft = 0f
     private var descriptionFadeRight = 0f
     private var descriptionFadeTop = 0f
     private var descriptionFadeBottom = 0f
-    /* флаг видимости фейда */
+    /** флаг видимости фейда описания */
     private var descriptionFadeVisible = false
 
     private val createdAtTextPaint = TextPaint().apply {
@@ -146,7 +161,13 @@ class NoteView @JvmOverloads constructor(
         isSubpixelText = true
     }
 
-    private val fadePaint = Paint().apply {
+    /** кисточка для фейда описания */
+    private val descriptionFadePaint = Paint().apply {
+        isAntiAlias = true
+    }
+
+    /** кисточка для фейда заголвока */
+    private val titleFadePaint = Paint().apply {
         isAntiAlias = true
     }
 
@@ -211,6 +232,63 @@ class NoteView @JvmOverloads constructor(
         initPaints()
     }
 
+    private fun updateTitleFadeState() {
+        val text = title?.takeIf { it.isNotBlank() }
+
+        val titleLeft = titleTextStartX
+        val titleRight = headerRect.right - innerTextPaddingPx
+
+        titleTextWidthPx = (titleRight - titleLeft)
+            .toInt()
+            .coerceAtLeast(0)
+
+        titleClipRect.set(titleRight, headerRect.top, titleLeft, headerRect.bottom)
+
+        if (text == null || titleTextWidthPx <= 0) {
+            titleFadeVisible = false
+            titleFadePaint.shader = null
+            return
+        }
+
+        val textWidth = titleTextPaint.measureText(text)
+
+        titleFadeVisible = textWidth > titleTextWidthPx
+
+        if (!titleFadeVisible) {
+            titleFadePaint.shader = null
+            return
+        }
+
+        val fontMetrics = titleTextPaint.fontMetrics
+
+        titleFadeRight = titleRight
+        titleFadeLeft = (titleFadeRight - fadeWidthPx)
+            .coerceAtLeast(titleLeft)
+
+        titleFadeTop = titleTextBaselineY + fontMetrics.ascent
+        titleFadeBottom = titleTextBaselineY + fontMetrics.descent
+
+        updateTitleFadeShader()
+    }
+
+    private fun updateTitleFadeShader() {
+        if (!titleFadeVisible) {
+            titleFadePaint.shader = null
+            return
+        }
+
+        val bgColor = headerPaint.color
+        val transparentBgColor = bgColor and 0x00FFFFFF
+
+        titleFadePaint.shader = LinearGradient(
+            titleFadeLeft, 0f,
+            titleFadeRight, 0f,
+            transparentBgColor,
+            bgColor,
+            Shader.TileMode.CLAMP,
+        )
+    }
+
     fun bind(note: NoteUi) {
         title = note.title
         isImportant = note.isImportant
@@ -255,7 +333,7 @@ class NoteView @JvmOverloads constructor(
 
     private fun updateDescriptionFadeShader() {
         if (!descriptionFadeVisible) {
-            fadePaint.shader = null
+            descriptionFadePaint.shader = null
             return
         }
 
@@ -263,7 +341,7 @@ class NoteView @JvmOverloads constructor(
         val bgColor = cardPaint.color
         val transparentBgColor = (bgColor and 0x00FFFFFF) // alpha = 0
 
-        fadePaint.shader = LinearGradient(
+        descriptionFadePaint.shader = LinearGradient(
             descriptionFadeLeft, 0f,
             descriptionFadeRight, 0f,
             transparentBgColor,
@@ -279,7 +357,7 @@ class NoteView @JvmOverloads constructor(
             descriptionOverflow = false
             descriptionTextMaxHeightPx = 0
             descriptionFadeVisible = false
-            fadePaint.shader = null
+            descriptionFadePaint.shader = null
             return
         }
 
@@ -336,6 +414,7 @@ class NoteView @JvmOverloads constructor(
 
         /* текст */
         updateTitleTextPosition()
+        updateTitleFadeState()
         updateCreatedAtTextPosition()
 
         /* иконки */
@@ -459,8 +538,31 @@ class NoteView @JvmOverloads constructor(
 
     private fun drawTitle(canvas: Canvas) {
         val text = title?.takeIf { it.isNotBlank() } ?: return
+        if (titleTextWidthPx <= 0) return
 
-        canvas.drawText(text, titleTextStartX, titleTextBaselineY, titleTextPaint)
+        canvas.save()
+
+        /* не даем заголовку выйти за пределы */
+        canvas.clipRect(titleClipRect)
+
+        canvas.drawText(
+            text,
+            titleTextStartX,
+            titleTextBaselineY,
+            titleTextPaint,
+        )
+
+        if (titleFadeVisible) {
+            canvas.drawRect(
+                titleFadeLeft,
+                titleFadeTop,
+                titleFadeRight,
+                titleFadeBottom,
+                titleFadePaint,
+            )
+        }
+
+        canvas.restore()
     }
 
     /* отрисовка текста описания заметки: 2 строки максимум + фейд, если больше*/
@@ -482,7 +584,7 @@ class NoteView @JvmOverloads constructor(
                 descriptionFadeTop,
                 descriptionFadeRight,
                 descriptionFadeBottom,
-                fadePaint
+                descriptionFadePaint
             )
         }
 
