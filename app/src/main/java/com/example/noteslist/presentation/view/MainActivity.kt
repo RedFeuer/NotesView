@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteId) ?: return
 
                 if (currentDestinationId != R.id.note_editor_fragment) {
                     val direction = NotesListFragmentDirections.actionNotesListFragmentToNoteEditorFragment(
@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             is EditorDestination.Edit -> {
-                val note = notesRepository.getNoteById(destination.noteUiId) ?: return
+                val note = notesRepository.getNoteById(destination.noteId) ?: return
 
                 val args = bundleOf(
                     "note" to note,

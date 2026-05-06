@@ -9,6 +9,8 @@ import dagger.Subcomponent
 interface MainActivityComponent {
     fun inject(activity: MainActivity)
 
+    fun settingsBottomSheetComponentFactory() : SettingsBottomSheetComponent.Factory
+
     fun notesListFragmentComponentFactory() : NotesListFragmentComponent.Factory
 
     fun noteEditorFragmentComponentFactory() : NoteEditorFragmentComponent.Factory

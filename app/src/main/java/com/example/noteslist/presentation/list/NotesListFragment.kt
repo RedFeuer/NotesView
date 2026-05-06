@@ -3,9 +3,11 @@ package com.example.noteslist.presentation.list
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -16,7 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.noteslist.R
 import com.example.noteslist.presentation.notes.adapters.NotesListAdapter
+import com.example.noteslist.presentation.settings.SettingsBottomSheetFragment
 import com.example.noteslist.presentation.view.MainActivity
+import com.example.noteslist.presentation.view.ShimmerNotesListView
 import com.example.noteslist.presentation.viewModel.EditorHostViewModel
 import com.example.noteslist.presentation.viewModel.NoteEditorViewModel
 import com.example.noteslist.presentation.viewModel.NotesListViewModel
@@ -43,6 +47,12 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     /** виджет поиска заметок */
     private lateinit var searchViewNotes : SearchView
+
+    /** кнопка настроек */
+    private lateinit var buttonSettings : ImageButton
+
+    /** шиммер */
+    private lateinit var shimmerNotes : ShimmerNotesListView
 
     private lateinit var notesAdapter : NotesListAdapter
     private lateinit var fabAddNote : FloatingActionButton
@@ -71,15 +81,17 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         recyclerViewNotes = view.findViewById<RecyclerView>(R.id.recycler_view_notes)
         fabAddNote = view.findViewById<FloatingActionButton>(R.id.fab_add_note)
         searchViewNotes = view.findViewById<SearchView>(R.id.search_view_notes)
+        buttonSettings = view.findViewById(R.id.button_settings)
+        shimmerNotes = view.findViewById(R.id.shimmer_notes)
 
         notesAdapter = NotesListAdapter(
             /* обработка клика - редактирование заметки */
             onNoteClick = { note ->
-                noteEditorViewModel.startEdit(note.uiId)
-                editorHostViewModel.openEdit(note.uiId)
+                noteEditorViewModel.startEdit(note.id)
+                editorHostViewModel.openEdit(note.id)
             },
             onNoteLongClick = { note ->
-                notesListViewModel.onNoteLongClick(note.uiId)
+                notesListViewModel.onNoteLongClick(note.id)
             },
             isStackExpanded = { stackId ->
                 notesListViewModel.uiState.value.expandedStackIds.contains(stackId)
@@ -103,6 +115,11 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
                 }
             }
         )
+
+        buttonSettings.setOnClickListener {
+            SettingsBottomSheetFragment()
+                .show(parentFragmentManager, SettingsBottomSheetFragment.TAG)
+        }
 
         recyclerViewNotes.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewNotes.adapter = notesAdapter
@@ -142,12 +159,21 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 notesListViewModel.uiState.collect { state ->
+                    val isShimmerVisible = state.isInitialShimmerVisible
+
+                    shimmerNotes.isVisible = isShimmerVisible
+                    recyclerViewNotes.isVisible = !isShimmerVisible
+                    fabAddNote.isVisible = !isShimmerVisible
+
                     /* берем сохраненный запрос из NotesListViewModel и сохраняем в SearchView */
                     if (searchViewNotes.query.toString() != state.searchQuery) {
                         searchViewNotes.setQuery(state.searchQuery, false)
                     }
 
-                    notesAdapter.submitList(state.items)
+                    if (!isShimmerVisible) {
+                        notesAdapter.submitStackSettings(state.stackSettings)
+                        notesAdapter.submitList(state.items)
+                    }
                 }
             }
         }

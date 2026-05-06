@@ -1,9 +1,12 @@
 package com.example.noteslist.presentation.state
 
+import com.example.noteslist.domain.settings.StackSettings
 import com.example.noteslist.presentation.notes.NoteListItem
 
 data class NotesListUiState(
     val items : List<NoteListItem> = emptyList(),
     val expandedStackIds : Set<String> = emptySet(),
     val searchQuery : String = "",
+    val stackSettings: StackSettings = StackSettings(),
+    val isInitialShimmerVisible : Boolean = false,
 )

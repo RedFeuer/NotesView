@@ -78,9 +78,9 @@ class NoteEditorViewModel @Inject constructor(
         )
     }
 
-    fun startEdit(noteUiId : String) {
+    fun startEdit(noteId : Long) {
         viewModelScope.launch {
-            val note = getNoteByIdUseCase(noteUiId) ?: return@launch
+            val note = getNoteByIdUseCase(noteId) ?: return@launch
 
             sourceNote = note
 
