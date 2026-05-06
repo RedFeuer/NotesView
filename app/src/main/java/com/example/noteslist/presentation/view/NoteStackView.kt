@@ -17,21 +17,24 @@ import androidx.core.view.isGone
 import androidx.core.view.isNotEmpty
 import com.example.noteslist.R
 import com.example.noteslist.domain.domainModel.Note
+import com.example.noteslist.domain.settings.StackSettings
+import com.example.noteslist.presentation.view.animation.NoteStackViewAnimation
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_DELAY_MS
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_END_SCALE
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.COLLAPSE_BUTTON_START_SCALE
 import com.example.noteslist.presentation.view.animation.NoteStackViewAnimationSpec.ITEM_START_DELAY_MS
-import com.example.noteslist.presentation.view.animation.NoteStackViewAnimation
-import kotlin.math.exp
 
 class NoteStackView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
-    private var stackSpacingVerticallyPx: Int = STACK_SPACING_VERTICALLY_DP.dpToPx
-    private var stackSpacingHorizontallyPx: Int = STACK_SPACING_HORIZONTALLY_DP.dpToPx
-    private var stackMaxSize: Int = STACK_MAX_SIZE
+    private var stackSpacingVerticallyPx: Int =
+        StackSettings.DEFAULT_STACK_SPACING_VERTICAL_DP.dpToPx
+    private var stackSpacingHorizontallyPx: Int =
+        StackSettings.DEFAULT_STACK_SPACING_HORIZONTAL_DP.dpToPx
+    private var stackMaxSize: Int =
+        StackSettings.DEFAULT_STACK_MAX_VISIBLE
     private var collapseTextSizePx = COLLAPSE_TEXT_SIZE_SP.spToPx
     private var horizontalPaddingPx = HORIZONTAL_PADDING_DP.dpToPx
     private var verticalPaddingPx = VERTICAL_PADDING_DP.dpToPx
@@ -70,12 +73,6 @@ class NoteStackView @JvmOverloads constructor(
 
     /* константы - значения по умолчанию. По сути дублируют dimens.xml */
     companion object {
-        /* отступ между заметками в стеке */
-        private const val STACK_SPACING_VERTICALLY_DP = 20
-        /* горизонтальный сдвиг видимых заметок в стеке */
-        private const val STACK_SPACING_HORIZONTALLY_DP = 8
-        /* максимальное количество видимых заметок в стеке */
-        private const val STACK_MAX_SIZE = 3
         /* размер шрифта для текста "Свернуть" */
         private const val COLLAPSE_TEXT_SIZE_SP = 16f
         /* горизонтальные отступы */
@@ -250,18 +247,6 @@ class NoteStackView @JvmOverloads constructor(
             )
 
             try {
-                stackSpacingVerticallyPx = typedArray.getDimensionPixelSize(
-                    R.styleable.NoteStackView_stackSpacingVertically,
-                    STACK_SPACING_VERTICALLY_DP.dpToPx
-                )
-                stackSpacingHorizontallyPx = typedArray.getDimensionPixelSize(
-                    R.styleable.NoteStackView_stackSpacingHorizontally,
-                    STACK_SPACING_HORIZONTALLY_DP.dpToPx
-                )
-                stackMaxSize = typedArray.getInt(
-                    R.styleable.NoteStackView_stackMaxSize,
-                    STACK_MAX_SIZE
-                ).coerceAtLeast(1) // гарантируем, что максимальный размер стека не меньше 1
                 collapseTextSizePx = typedArray.getDimension(
                     R.styleable.NoteStackView_stackCollapseTextSize,
                     COLLAPSE_TEXT_SIZE_SP.spToPx
@@ -293,35 +278,69 @@ class NoteStackView @JvmOverloads constructor(
     }
 
     /* метод для передачи новых заметок в NoteStackView и обновления отображения */
-    fun submitNotes(newNotes: List<Note>, expanded : Boolean) {
+    fun submitNotes(
+        newNotes: List<Note>,
+        expanded : Boolean,
+        settings: StackSettings,
+    ) {
+        updateStackSettings(settings)
+
         notes.clear()
         notes += newNotes.sortedByDescending { it.createdAtMillis } // сортируем заметки по времени создания, самые свежие сверху
+
         isExpanded = expanded
+
         rebuildChildren() // обновляем отображение заметок в стеке
     }
 
+    private fun updateStackSettings(settings: StackSettings) : Boolean {
+        val safeVerticalSpacingPx = settings.stackSpacingVerticalDp.dpToPx.coerceAtLeast(0)
+        val safeHorizontalSpacingPx = settings.stackSpacingHorizontalDp.dpToPx.coerceAtLeast(0)
+        val safeStackMaxVisible = settings.stackMaxVisible.coerceIn(
+            minimumValue = StackSettings.MIN_STACK_MAX_VISIBLE,
+            maximumValue = StackSettings.MAX_STACK_MAX_VISIBLE
+        )
+
+        val isChanged =
+            stackSpacingVerticallyPx != safeVerticalSpacingPx ||
+                    stackSpacingHorizontallyPx != safeHorizontalSpacingPx ||
+                    stackMaxSize != safeStackMaxVisible
+
+        if (!isChanged) return false
+
+        if (isAnimating) {
+            cancelCurrentAnimation()
+        }
+
+        stackSpacingVerticallyPx = safeVerticalSpacingPx
+        stackSpacingHorizontallyPx = safeHorizontalSpacingPx
+        stackMaxSize = safeStackMaxVisible
+
+        return true
+    }
+
     fun updateNote(updatedNote : Note) {
-        val noteIndex = notes.indexOfFirst { it.uiId == updatedNote.uiId }
+        val noteIndex = notes.indexOfFirst { it.id == updatedNote.id }
         if (noteIndex == -1) return
 
         notes[noteIndex] = updatedNote
 
-        val childIndex = findChildIndexForNote(updatedNote.uiId) ?: return
+        val childIndex = findChildIndexForNote(updatedNote.id) ?: return
         val child = getChildAt(childIndex) as? NoteView ?: return
 
         child.bind(noteMapper.mapDomainModelToUi(updatedNote))
     }
 
     /* ищем какой дочерний NoteView соответствует заметке */
-    private fun findChildIndexForNote(noteUiId : String) : Int? {
+    private fun findChildIndexForNote(noteId : Long) : Int? {
         return if (isExpanded) {
             /* развернутый стек */
-            val index = notes.indexOfFirst { it.uiId == noteUiId }
+            val index = notes.indexOfFirst { it.id == noteId }
             if (index == -1) null else index
         } else {
             /* свернутый стек */
             val visibleNotes = notes.take(stackMaxSize)
-            val visibleIndex = visibleNotes.indexOfFirst { it.uiId == noteUiId }
+            val visibleIndex = visibleNotes.indexOfFirst { it.id == noteId }
             if (visibleIndex == -1) {
                 /* невидимую карточку не обновляем */
                 null

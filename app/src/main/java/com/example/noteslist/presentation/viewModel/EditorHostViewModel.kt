@@ -17,8 +17,8 @@ class EditorHostViewModel @Inject constructor() : ViewModel() {
         _destination.value = EditorDestination.Create
     }
 
-    fun openEdit(noteUiId : String) {
-        _destination.value = EditorDestination.Edit(noteUiId)
+    fun openEdit(noteId : Long) {
+        _destination.value = EditorDestination.Edit(noteId)
     }
 
     fun close() {

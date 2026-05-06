@@ -52,6 +52,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.compose.ui.graphics)
 
     val composeBom = platform(libs.androidx.compose.bom)
 
@@ -80,4 +83,12 @@ dependencies {
 
     /* KSP */
     ksp(libs.dagger.compiler)
+
+    /* Room */
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    /* Data Store */
+    implementation(libs.datastore.preferences)
 }

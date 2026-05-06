@@ -5,7 +5,7 @@ import com.example.noteslist.domain.domainModel.Note
 sealed interface NoteListItemPayload {
     data class StackNoteChanged(
         /** id заметки, которая изменилась  */
-        val noteUiId : String,
+        val noteId : Long,
         /** новая версия заметки */
         val newNote : Note,
     ) : NoteListItemPayload

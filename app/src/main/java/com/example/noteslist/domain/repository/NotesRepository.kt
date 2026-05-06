@@ -5,8 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface NotesRepository {
     fun getNotes() : Flow<List<Note>>
-    suspend fun getNoteById(uiId : String): Note?
+    suspend fun getNoteById(id : Long): Note?
     suspend fun addNote(note : Note)
+    suspend fun addNotes(notes : List<Note>)
     suspend fun updateNote(note : Note)
-    suspend fun toggleViewed(uiId : String) // помечаем прочитанным посредством длинного тапа
+    suspend fun toggleViewed(id : Long) // помечаем прочитанным посредством длинного тапа
+    suspend fun isEmpty() : Boolean
 }
