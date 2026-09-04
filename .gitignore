@@ -2,6 +2,7 @@
 local.properties
 
 # gradle
+gradle/gradle-daemon-jvm.properties
 .gradle/
 **/build/
 
